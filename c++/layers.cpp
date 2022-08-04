@@ -2,6 +2,7 @@
 #include <vector>
 #include <cstdlib>
 #include <tuple>
+#include <array>
 /*
 Author: Edward Guilfoyle
 Comments: It would be wise to extend the vector class, and create a matrix
@@ -9,39 +10,21 @@ class to implement functionality like Matrix.dot(). Similar to numpy...
 */
 using namespace std;
 
-void print_matrix(vector<vector<float>> matrix) {
-    char* temp;
-    cout << "[";
-    for(int i = 0; i < (int) matrix.size(); i++) {
-	cout << "[";
-	for (int j = 0; j < (int) matrix[0].size(); j++) {
-	    temp = j + 1 == (int) matrix[0].size() ? (char*) "" : (char*) ", ";
-	    cout << matrix[i][j] << temp;
-	}
-	temp = i + 1 == (int) matrix.size() ? (char*) "" : (char*) ",\n ";
-	cout << "]" << temp;
-    }
-    cout << "]\n";
-}
 
-
-template <class T>
+template <typename dtype>
 class Matrix {
 
-    vector<vector<T>> matrix;
-    unsigned long rows;
-    unsigned long cols;
-    unsigned long* shape;
+    vector<vector<dtype>> matrix;
 
 public:
-    Matrix(int rows, int cols): matrix(rows, vector<T>(cols)) {
-	cols = (unsigned long) cols;
-	rows = (unsigned long) rows;
-	shape[0] = rows;
-	shape[1] = cols;
+    int rows;
+    int cols;
+
+    Matrix(int rows, int cols): matrix(rows, vector<dtype>(cols)), 
+	rows(rows), cols(cols) {
     }
 
-    vector<T>& operator[](int i) {
+    vector<dtype>& operator[](int i) {
         return matrix[i];
     }
 
@@ -49,33 +32,39 @@ public:
     	return matrix.size();
     }
 
-    void print() {
-	char* temp;
-	cout << "[";
-	for(int i = 0; i < (int) matrix.size(); i++) {
-	    cout << "[";
-	    for (int j = 0; j < (int) matrix[0].size(); j++) {
-		temp = j + 1 == (int) matrix[0].size() ? (char*) "" : (char*) ", ";
-		cout << matrix[i][j] << temp;
-	    }
-	    temp = i + 1 == (int) matrix.size() ? (char*) "" : (char*) ",\n ";
-	    cout << "]" << temp;
-	}
-	cout << "]\n";
+    void set_matrix(vector<vector<dtype>> update) {
+	// Dangerous, only use this to initialize
+	matrix = update;
     }
 };
+
+template <typename dtype>
+void print_matrix(Matrix<dtype> matrix) {
+    char* temp;
+    cout << "[";
+    for(int i = 0; i < matrix.rows; i++) {
+	cout << "[";
+	for (int j = 0; j < matrix.cols; j++) {
+	    temp = j + 1 == matrix.cols ? (char*) "" : (char*) ", ";
+	    cout << matrix[i][j] << temp;
+	}
+	temp = i + 1 == matrix.rows ? (char*) "" : (char*) ",\n ";
+	cout << "]" << temp;
+    }
+    cout << "]\n";
+}
 
 template <typename dtype>
 Matrix<dtype> dot(Matrix<dtype> a, Matrix<dtype> b) {
     Matrix<dtype> out(a.rows, b.cols);
     // a should be inputs
     // b should be weights
-    for (int i = 0; (int) a.rows; i++) {
+    for (int i = 0; i < a.rows; i++) {
 	// For each sample
-	for (int j = 0; j < (int) b.cols; j++) {
+	for (int j = 0; j < b.cols; j++) {
 	    // For each neuron
 	    dtype product = 0; 
-	    for (int k = 0; k < (int) a.cols; k++) {
+	    for (int k = 0; k < a.cols; k++) {
 		// For each feature of that sample
 		product +=  a[i][k] * b[k][j];
 	    }
@@ -86,7 +75,20 @@ Matrix<dtype> dot(Matrix<dtype> a, Matrix<dtype> b) {
     return out;
 }
 
-
+template <typename dtype>
+Matrix<dtype> add(Matrix<dtype> a, Matrix<dtype> b) {
+    // Let a be the dot(input, weights).
+    // Let b be the biases
+    Matrix<dtype> out(a.rows, a.cols);
+    if (a.cols == b.cols && b.rows == 1) {
+	for (int i = 0; i < a.rows; i++) {
+	    for (int j = 0; j < a.cols; j++) {
+		out[i][j] = a[i][j] + b[0][j];
+	    }
+	}
+    }
+    return out;
+}
 
 
 class Dense { 
@@ -107,51 +109,43 @@ class Dense {
     //        [[0]]
     //   3 input, 2 neuron in layer.
     //        [[0, 0]]
-    vector<vector<float>> weights; 
-    vector<vector<float>> biases;
+    Matrix<float> weights; 
+    Matrix<float> biases;
 	
 
 public:
     // Think of n_inputs actually as n_features of the input data
-    Dense(int n_inputs, int n_neurons): weights(n_inputs, 
-	    vector<float>(n_neurons)), biases(1, vector<float>(n_neurons)) {
-	// Fill weights vector with random values between 0-1
-	// This has O**2 time complexity, there must be a better way.
-	for (int i = 0; i < n_neurons; i++) {
-	    for (int j = 0; j < n_inputs; j++) {
-		weights[j][i] = (float) rand()/RAND_MAX;
+    Dense(int n_inputs, int n_neurons): weights(n_inputs, n_neurons), 
+	    biases(1, n_neurons) 
+       {
+	    randomize_weights();
+       }
+
+    void randomize_weights() {
+	for (int i = 0; i < weights.rows; i++) {
+	    for (int j = 0; j < weights.cols; j++) {
+		weights[i][j] = (float) rand()/RAND_MAX;
 	    }
 	}
     }
 
-    vector<vector<float>> forward(vector<vector<float>> input) {
+    Matrix<float> forward(Matrix<float> input) {
     	// Calculate the dot product between each neuron and input data
-	vector<vector<float>> out(input.size(), vector<float>(weights[0].size())); 
-	for (int i = 0; i < (int) input.size(); i++) {
-	    // For each sample
-	    for (int j = 0; j < (int) weights[0].size(); j++) {
-		// For each neuron
-		int product = 0; biases[0][j]; 
-		for (int k = 0; k < (int) input[0].size(); k++) {
-		    // For each feature of that sample
-		    product += weights[k][j] * input[i][k];
-		}
-		out[i][j] = product + biases[0][j];
-	    }
-	}
-	return out;
+	return add(dot(input, weights), biases);
     }
 };
 
 
 
 int main() {
-    vector<vector<float>> X{ {1, 2, 3},
-			     {4, 5, 6}, 
-    			     {7, 8, 9} };
-    Dense dense(3, 4);
-    vector<vector<float>> test = dense.forward(X);
-    print_matrix(test);
+    vector<vector<float>> in { {1, 1, 1},
+			       {2, 2, 2}, 
+    			       {3, 3, 3} };
+    Matrix<float> X(3, 3);
+    X.set_matrix(in);
+    Dense dense(3, 8);
+    Matrix<float> out = dense.forward(X);
+    print_matrix(out);
     //Dense dense(4, 2); 
     //dense.forward(X);
     return 1;
