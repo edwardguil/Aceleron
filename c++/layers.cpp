@@ -1,94 +1,12 @@
 #include <iostream>
 #include <vector>
 #include <cstdlib>
-#include <tuple>
-#include <array>
+#include "matrix.h"
 /*
 Author: Edward Guilfoyle
 Comments: It would be wise to extend the vector class, and create a matrix
 class to implement functionality like Matrix.dot(). Similar to numpy...
 */
-using namespace std;
-
-
-template <typename dtype>
-class Matrix {
-
-    vector<vector<dtype>> matrix;
-
-public:
-    int rows;
-    int cols;
-
-    Matrix(int rows, int cols): matrix(rows, vector<dtype>(cols)), 
-	rows(rows), cols(cols) {
-    }
-
-    vector<dtype>& operator[](int i) {
-        return matrix[i];
-    }
-
-    unsigned long size() {
-    	return matrix.size();
-    }
-
-    void set_matrix(vector<vector<dtype>> update) {
-	// Dangerous, only use this to initialize
-	matrix = update;
-    }
-};
-
-template <typename dtype>
-void print_matrix(Matrix<dtype> matrix) {
-    char* temp;
-    cout << "[";
-    for(int i = 0; i < matrix.rows; i++) {
-	cout << "[";
-	for (int j = 0; j < matrix.cols; j++) {
-	    temp = j + 1 == matrix.cols ? (char*) "" : (char*) ", ";
-	    cout << matrix[i][j] << temp;
-	}
-	temp = i + 1 == matrix.rows ? (char*) "" : (char*) ",\n ";
-	cout << "]" << temp;
-    }
-    cout << "]\n";
-}
-
-template <typename dtype>
-Matrix<dtype> dot(Matrix<dtype> a, Matrix<dtype> b) {
-    Matrix<dtype> out(a.rows, b.cols);
-    // a should be inputs
-    // b should be weights
-    for (int i = 0; i < a.rows; i++) {
-	// For each sample
-	for (int j = 0; j < b.cols; j++) {
-	    // For each neuron
-	    dtype product = 0; 
-	    for (int k = 0; k < a.cols; k++) {
-		// For each feature of that sample
-		product +=  a[i][k] * b[k][j];
-	    }
-	    //out[i][j] = product + biases[0][j];
-	    out[i][j] = product;
-	}
-    }
-    return out;
-}
-
-template <typename dtype>
-Matrix<dtype> add(Matrix<dtype> a, Matrix<dtype> b) {
-    // Let a be the dot(input, weights).
-    // Let b be the biases
-    Matrix<dtype> out(a.rows, a.cols);
-    if (a.cols == b.cols && b.rows == 1) {
-	for (int i = 0; i < a.rows; i++) {
-	    for (int j = 0; j < a.cols; j++) {
-		out[i][j] = a[i][j] + b[0][j];
-	    }
-	}
-    }
-    return out;
-}
 
 
 class Dense { 
@@ -138,7 +56,7 @@ public:
 
 
 int main() {
-    vector<vector<float>> in { {1, 1, 1},
+    std::vector<std::vector<float>> in { {1, 1, 1},
 			       {2, 2, 2}, 
     			       {3, 3, 3} };
     Matrix<float> X(3, 3);
