@@ -2,14 +2,14 @@
 #include <vector>
 #include <cstdlib>
 #include "matrix.h"
-/*
-Author: Edward Guilfoyle
-Comments: It would be wise to extend the vector class, and create a matrix
-class to implement functionality like Matrix.dot(). Similar to numpy...
-*/
+
+class Layer {
+    public:
+	virtual Matrix<float> forward(Matrix<float>) = 0;
+};
 
 
-class Dense { 
+class Dense : public Layer { 
     // Weights:
     //  Each col corrosponds to all the weights associated with a neuron.
     //    Example:
@@ -53,18 +53,36 @@ public:
     }
 };
 
+class ReLU : public Layer {
+    
+    public:
+    Matrix<float> forward(Matrix<float> input) {
+	for (int i = 0; i < input.rows; i++) {
+	    for (int j = 0; j < input.cols; j++) {
+		if (input[i][j] < 0) {
+		    input[i][j] = 0;
+		}
+	    }
+	}
+	return input;
+    }
+};
 
 
 int main() {
+    // Lets setup our data
     std::vector<std::vector<float>> in { {1, 1, 1},
-			       {2, 2, 2}, 
-    			       {3, 3, 3} };
+			       {-2, -2, -2}, 
+    
+			       {3, 3, 3} };
     Matrix<float> X(3, 3);
     X.set_matrix(in);
-    Dense dense(3, 8);
+    // Lets define our layers
+    ReLU relu;
+    Dense dense(3, 3);
+    // Lets do a forward pass
     Matrix<float> out = dense.forward(X);
-    print_matrix(out);
-    //Dense dense(4, 2); 
-    //dense.forward(X);
+    Matrix<float> out2 = relu.forward(out);
+    print_matrix(out2);
     return 1;
 }
