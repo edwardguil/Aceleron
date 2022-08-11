@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <cstdlib>
+#include <random>
 #include "matrix.h"
 
 class Layer {
@@ -40,9 +41,12 @@ public:
        }
 
     void randomize_weights() {
+	std::default_random_engine generator;
+	std::uniform_real_distribution<float> distribution(0.0,1.0);
 	for (int i = 0; i < weights.rows; i++) {
 	    for (int j = 0; j < weights.cols; j++) {
-		weights[i][j] = (float) rand()/RAND_MAX;
+		weights[i][j] = distribution(generator);
+		//weights[i][j] = (float) rand()/RAND_MAX;
 	    }
 	}
     }
