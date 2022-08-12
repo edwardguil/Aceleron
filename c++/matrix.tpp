@@ -1,11 +1,13 @@
 #include <iostream>
 #include <cstdlib>
 #include <vector>
+#include <climits>
+#include <cmath>
 #include "matrix.h"
 
 template <typename dtype>
-Matrix<dtype>::Matrix(int rows, int cols): matrix(rows, 
-	std::vector<dtype>(cols)), rows(rows), cols(cols) {
+Matrix<dtype>::Matrix(int rows, int cols, dtype value): matrix(rows, 
+	std::vector<dtype>(cols, value)), rows(rows), cols(cols) {
 }
 
 template <typename dtype>
@@ -25,7 +27,7 @@ void Matrix<dtype>::set_matrix(std::vector<std::vector<dtype>> update) {
 }
 
 template <typename dtype>
-void print_matrix(Matrix<dtype> matrix) {
+void matrix_print(Matrix<dtype> matrix) {
     char* temp;
     std::cout << "[";
     for(int i = 0; i < matrix.rows; i++) {
@@ -41,7 +43,7 @@ void print_matrix(Matrix<dtype> matrix) {
 }
 
 template <typename dtype>
-Matrix<dtype> dot(Matrix<dtype> a, Matrix<dtype> b) {
+Matrix<dtype> matrix_dot(Matrix<dtype> a, Matrix<dtype> b) {
     Matrix<dtype> out(a.rows, b.cols);
     // a should be inputs
     // b should be weights
@@ -61,9 +63,7 @@ Matrix<dtype> dot(Matrix<dtype> a, Matrix<dtype> b) {
 }
 
 template <typename dtype>
-Matrix<dtype> add(Matrix<dtype> a, Matrix<dtype> b) {
-    // Let a be the dot(input, weights).
-    // Let b be the biases
+Matrix<dtype> matrix_add(Matrix<dtype> a, Matrix<dtype> b) {
     Matrix<dtype> out(a.rows, a.cols);
     if (a.cols == b.cols && b.rows == 1) {
 	for (int i = 0; i < a.rows; i++) {
@@ -71,8 +71,60 @@ Matrix<dtype> add(Matrix<dtype> a, Matrix<dtype> b) {
 		out[i][j] = a[i][j] + b[0][j];
 	    }
 	}
+    } else if (a.rows == b.rows && b.cols == 1) {
+	for (int i = 0; i < a.rows; i++) {
+	    for (int j = 0; j < a.cols; j++) {
+		out[i][j] = a[i][j] + b[i][0];
+	    }
+	}
+    } else if (a.cols == b.cols && a.rows == b.cols) {
+	// Element wise addittion; 
     }
     return out;
 }
 
-/* vim: set ft=cpp: */
+template <typename dtype>
+Matrix<dtype> matrix_subtract(Matrix<dtype> a, Matrix<dtype> b) {
+    Matrix<dtype> out(a.rows, a.cols);
+    if (a.cols == b.cols && b.rows == 1) {
+	for (int i = 0; i < a.rows; i++) {
+	    for (int j = 0; j < a.cols; j++) {
+		out[i][j] = a[i][j] - b[0][j];
+	    }
+	}
+    } else if (a.rows == b.rows && b.cols == 1) {
+	for (int i = 0; i < a.rows; i++) {
+	    for (int j = 0; j < a.cols; j++) {
+		out[i][j] = a[i][j] - b[i][0];
+	    }
+	}
+    } else if (a.cols == b.cols && a.rows == b.cols) {
+	// Element wise subtraction; 
+    }
+    return out;
+}
+
+template <typename dtype>
+Matrix<dtype> matrix_max(Matrix<dtype> input, int axis) {
+    // axis = 0 computes max value for a each column
+    // axis = 1 computs max value for each row
+    // DOSENT ACTUALLY DO THAT YET. NEED TO TRANSPOSE. 
+    Matrix<dtype> maxValues = Matrix<dtype>(input.rows, 1, (dtype) -INT_MAX); 
+    for (int i = 0; i < input.rows; i++) {
+	for (int j = 0; j < input.cols; j++) {
+	    if (input[i][j] > maxValues[i][0]) {
+		maxValues[i][0] = input[i][j];
+	    }
+	}
+    }
+    return maxValues;
+}
+
+template <typename dtype>
+Matrix<dtype> matrix_exp(Matrix<dtype> input) {
+    for (int i = 0; i < input.rows; i++) {
+	for (int j = 0; j < input.cols; j++) {
+	    input[i][j] = exp(input[i][j]);
+	}
+    }
+}

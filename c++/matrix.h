@@ -12,7 +12,7 @@ public:
     int rows;
     int cols;
 
-    Matrix(int rows, int cols); 
+    Matrix(int rows, int cols, dtype value = 0); 
 
     std::vector<dtype>& operator[](int i);
 
@@ -22,14 +22,23 @@ public:
 };
 
 template <typename dtype>
-void print_matrix(Matrix<dtype> matrix);
+void matrix_print(Matrix<dtype> matrix);
 
 template <typename dtype>
-Matrix<dtype> dot(Matrix<dtype> a, Matrix<dtype> b);
+Matrix<dtype> matrix_dot(Matrix<dtype> a, Matrix<dtype> b);
 
 
 template <typename dtype> 
-Matrix<dtype> add(Matrix<dtype> a, Matrix<dtype> b);
+Matrix<dtype> matrix_add(Matrix<dtype> a, Matrix<dtype> b);
+
+template <typename dtype> 
+Matrix<dtype> matrix_subtract(Matrix<dtype> a, Matrix<dtype> b);
+
+template <typename dtype>
+Matrix<dtype> matrix_max(Matrix<dtype> input, int axis = 0);
+
+template <typename dtype>
+Matrix<dtype> matrix_exp(Matrix<dtype> a);
 
 #include "matrix.tpp"
 

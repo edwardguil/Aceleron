@@ -5,3 +5,6 @@ all: layers
 
 layers: layers.cpp
 	$(COMPILER) $(FLAGS) -o layers layers.cpp
+
+clean: 
+	rm layers
