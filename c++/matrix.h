@@ -27,7 +27,6 @@ void matrix_print(Matrix<dtype> matrix);
 template <typename dtype>
 Matrix<dtype> matrix_dot(Matrix<dtype> a, Matrix<dtype> b);
 
-
 template <typename dtype> 
 Matrix<dtype> matrix_add(Matrix<dtype> a, Matrix<dtype> b);
 
@@ -35,10 +34,15 @@ template <typename dtype>
 Matrix<dtype> matrix_subtract(Matrix<dtype> a, Matrix<dtype> b);
 
 template <typename dtype>
-Matrix<dtype> matrix_max(Matrix<dtype> input, int axis = 0);
+Matrix<dtype> matrix_max(Matrix<dtype> input);
+
+template <typename dtype>
+Matrix<dtype> matrix_sum(Matrix<dtype> input);
 
 template <typename dtype>
 Matrix<dtype> matrix_exp(Matrix<dtype> a);
+
+
 
 #include "matrix.tpp"
 
