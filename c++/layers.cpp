@@ -35,9 +35,11 @@ class Dense : public Layer {
 public:
     // Think of n_inputs actually as n_features of the input data
     Dense(int n_inputs, int n_neurons): weights(n_inputs, n_neurons), 
-	    biases(1, n_neurons) 
+	    biases(1, n_neurons, 1) 
        {
-	    randomize_weights();
+	   biases[0][1] = 2;
+	   biases[0][2] = 3;
+	   randomize_weights();
        }
 
     void randomize_weights() {
@@ -46,14 +48,13 @@ public:
 	for (int i = 0; i < weights.rows; i++) {
 	    for (int j = 0; j < weights.cols; j++) {
 		weights[i][j] = distribution(generator);
-		//weights[i][j] = (float) rand()/RAND_MAX;
 	    }
 	}
     }
 
     Matrix<float> forward(Matrix<float> input) {
     	// Calculate the dot product between each neuron and input data
-	return add(dot(input, weights), biases);
+	return matrix_add(matrix_dot(input, weights), biases);
     }
 };
 
@@ -73,20 +74,25 @@ class ReLU : public Layer {
 };
 
 
+class Softmax: public Layer {
+
+    public:
+    Matrix<float> forward(Matrix<float> input) {
+	return matrix_subtract(input, matrix_max(input));
+    }
+};
+
 int main() {
     // Lets setup our data
-    std::vector<std::vector<float>> in { {1, 1, 1},
-			       {-2, -2, -2}, 
+    std::vector<std::vector<float>> in { {1, 2, 3},
+			       {-4, -5, -6}, 
     
-			       {3, 3, 3} };
+			       {7, 8, 9} };
     Matrix<float> X(3, 3);
     X.set_matrix(in);
+    Dense dense(3, 3);
     // Lets define our layers
     ReLU relu;
-    Dense dense(3, 3);
-    // Lets do a forward pass
-    Matrix<float> out = dense.forward(X);
-    Matrix<float> out2 = relu.forward(out);
-    print_matrix(out2);
+    Softmax softmax;
     return 1;
 }
