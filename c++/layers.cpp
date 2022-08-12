@@ -78,7 +78,9 @@ class Softmax: public Layer {
 
     public:
     Matrix<float> forward(Matrix<float> input) {
-	return matrix_subtract(input, matrix_max(input));
+	Matrix<float> temp = matrix_exp(matrix_subtract(input, 
+		    matrix_max(input)));
+	return matrix_division(temp, matrix_sum(temp));
     }
 };
 
@@ -90,9 +92,13 @@ int main() {
 			       {7, 8, 9} };
     Matrix<float> X(3, 3);
     X.set_matrix(in);
+    matrix_print(X);
+    matrix_print(matrix_sum(X));
+    matrix_print(matrix_division(X, matrix_sum(X)));
     Dense dense(3, 3);
     // Lets define our layers
     ReLU relu;
     Softmax softmax;
+    matrix_print(softmax.forward(X));
     return 1;
 }
