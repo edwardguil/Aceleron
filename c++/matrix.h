@@ -34,6 +34,12 @@ template <typename dtype>
 Matrix<dtype> matrix_subtract(Matrix<dtype> a, Matrix<dtype> b);
 
 template <typename dtype>
+Matrix<dtype> matrix_mul(Matrix<dtype> a, Matrix<dtype> b);
+
+template <typename dtype> 
+Matrix<dtype> matrix_division(Matrix<dtype> a, Matrix<dtype> b);
+
+template <typename dtype>
 Matrix<dtype> matrix_max(Matrix<dtype> input);
 
 template <typename dtype>
@@ -41,6 +47,9 @@ Matrix<dtype> matrix_sum(Matrix<dtype> input);
 
 template <typename dtype>
 Matrix<dtype> matrix_exp(Matrix<dtype> a);
+
+template <typename dtype>
+Matrix<dtype> matrix_log(Matrix<dtype> a);
 
 
 

@@ -79,6 +79,11 @@ Matrix<dtype> matrix_add(Matrix<dtype> a, Matrix<dtype> b) {
 	}
     } else if (a.cols == b.cols && a.rows == b.cols) {
 	// Element wise addittion; 
+	for (int i = 0; i < a.rows; i++) {
+	    for (int j = 0; i < a.rows; i++) {
+		out[i][j] = a[i][j] + b[i][j];
+	    }
+	}
     }
     return out;
 }
@@ -100,6 +105,37 @@ Matrix<dtype> matrix_subtract(Matrix<dtype> a, Matrix<dtype> b) {
 	}
     } else if (a.cols == b.cols && a.rows == b.cols) {
 	// Element wise subtraction; 
+	for (int i = 0; i < a.rows; i++) {
+	    for (int j = 0; i < a.rows; i++) {
+		out[i][j] = a[i][j] - b[i][j];
+	    }
+	}
+    }
+    return out;
+}
+
+template <typename dtype>
+Matrix<dtype> matrix_mul(Matrix<dtype> a, Matrix<dtype> b) {
+    Matrix<dtype> out(a.rows, a.cols);
+    if (a.cols == b.cols && b.rows == 1) {
+	for (int i = 0; i < a.rows; i++) {
+	    for (int j = 0; j < a.cols; j++) {
+		out[i][j] = a[i][j] * b[0][j];
+	    }
+	}
+    } else if (a.rows == b.rows && b.cols == 1) {
+	for (int i = 0; i < a.rows; i++) {
+	    for (int j = 0; j < a.cols; j++) {
+		out[i][j] = a[i][j] * b[i][0];
+	    }
+	}
+    } else if (a.cols == b.cols && a.rows == b.cols) {
+	// Element wise multiplication; 
+	for (int i = 0; i < a.rows; i++) {
+	    for (int j = 0; i < a.rows; i++) {
+		out[i][j] = a[i][j] * b[i][j];
+	    }
+	}
     }
     return out;
 }
@@ -120,7 +156,12 @@ Matrix<dtype> matrix_division(Matrix<dtype> a, Matrix<dtype> b) {
 	    }
 	}
     } else if (a.cols == b.cols && a.rows == b.cols) {
-	// Element wise subtraction; 
+	// Element wise division
+	for (int i = 0; i < a.rows; i++) {
+	    for (int j = 0; i < a.rows; i++) {
+		out[i][j] = a[i][j] / b[i][j];
+	    }
+	}
     }
     return out;
 }
@@ -155,6 +196,17 @@ Matrix<dtype> matrix_sum(Matrix<dtype> input) {
     return out;
 }
 
+template <typename dtype>
+Matrix<dtype> matrix_log(Matrix<dtype> input) {
+    // Element wise log
+    Matrix<dtype> out(input.rows, input.cols);
+    for (int i = 0; i < input.rows; i++) {
+	for (int j = 0; j < input.cols; j++) {
+	    out[i][j] = log(input[i][j]);
+	}
+    }
+    return out;
+}
 
 template <typename dtype>
 Matrix<dtype> matrix_exp(Matrix<dtype> input) {
