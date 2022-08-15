@@ -63,111 +63,6 @@ Matrix<dtype> matrix_dot(Matrix<dtype> a, Matrix<dtype> b) {
 }
 
 template <typename dtype>
-Matrix<dtype> matrix_add(Matrix<dtype> a, Matrix<dtype> b) {
-    Matrix<dtype> out(a.rows, a.cols);
-    if (a.cols == b.cols && b.rows == 1) {
-	for (int i = 0; i < a.rows; i++) {
-	    for (int j = 0; j < a.cols; j++) {
-		out[i][j] = a[i][j] + b[0][j];
-	    }
-	}
-    } else if (a.rows == b.rows && b.cols == 1) {
-	for (int i = 0; i < a.rows; i++) {
-	    for (int j = 0; j < a.cols; j++) {
-		out[i][j] = a[i][j] + b[i][0];
-	    }
-	}
-    } else if (a.cols == b.cols && a.rows == b.cols) {
-	// Element wise addittion; 
-	for (int i = 0; i < a.rows; i++) {
-	    for (int j = 0; i < a.rows; i++) {
-		out[i][j] = a[i][j] + b[i][j];
-	    }
-	}
-    }
-    return out;
-}
-
-template <typename dtype>
-Matrix<dtype> matrix_subtract(Matrix<dtype> a, Matrix<dtype> b) {
-    Matrix<dtype> out(a.rows, a.cols);
-    if (a.cols == b.cols && b.rows == 1) {
-	for (int i = 0; i < a.rows; i++) {
-	    for (int j = 0; j < a.cols; j++) {
-		out[i][j] = a[i][j] - b[0][j];
-	    }
-	}
-    } else if (a.rows == b.rows && b.cols == 1) {
-	for (int i = 0; i < a.rows; i++) {
-	    for (int j = 0; j < a.cols; j++) {
-		out[i][j] = a[i][j] - b[i][0];
-	    }
-	}
-    } else if (a.cols == b.cols && a.rows == b.cols) {
-	// Element wise subtraction; 
-	for (int i = 0; i < a.rows; i++) {
-	    for (int j = 0; i < a.rows; i++) {
-		out[i][j] = a[i][j] - b[i][j];
-	    }
-	}
-    }
-    return out;
-}
-
-template <typename dtype>
-Matrix<dtype> matrix_mul(Matrix<dtype> a, Matrix<dtype> b) {
-    Matrix<dtype> out(a.rows, a.cols);
-    if (a.cols == b.cols && b.rows == 1) {
-	for (int i = 0; i < a.rows; i++) {
-	    for (int j = 0; j < a.cols; j++) {
-		out[i][j] = a[i][j] * b[0][j];
-	    }
-	}
-    } else if (a.rows == b.rows && b.cols == 1) {
-	for (int i = 0; i < a.rows; i++) {
-	    for (int j = 0; j < a.cols; j++) {
-		out[i][j] = a[i][j] * b[i][0];
-	    }
-	}
-    } else if (a.cols == b.cols && a.rows == b.cols) {
-	// Element wise multiplication; 
-	for (int i = 0; i < a.rows; i++) {
-	    for (int j = 0; i < a.rows; i++) {
-		out[i][j] = a[i][j] * b[i][j];
-	    }
-	}
-    }
-    return out;
-}
-
-template <typename dtype>
-Matrix<dtype> matrix_division(Matrix<dtype> a, Matrix<dtype> b) {
-    Matrix<dtype> out(a.rows, a.cols);
-    if (a.cols == b.cols && b.rows == 1) {
-	for (int i = 0; i < a.rows; i++) {
-	    for (int j = 0; j < a.cols; j++) {
-		out[i][j] = a[i][j] / b[0][j];
-	    }
-	}
-    } else if (a.rows == b.rows && b.cols == 1) {
-	for (int i = 0; i < a.rows; i++) {
-	    for (int j = 0; j < a.cols; j++) {
-		out[i][j] = a[i][j] / b[i][0];
-	    }
-	}
-    } else if (a.cols == b.cols && a.rows == b.cols) {
-	// Element wise division
-	for (int i = 0; i < a.rows; i++) {
-	    for (int j = 0; i < a.rows; i++) {
-		out[i][j] = a[i][j] / b[i][j];
-	    }
-	}
-    }
-    return out;
-}
-
-
-template <typename dtype>
 Matrix<dtype> matrix_max(Matrix<dtype> input) {
     // finds max value over axis 1 (finds max value in each row)
     // keepdims = true
@@ -196,26 +91,78 @@ Matrix<dtype> matrix_sum(Matrix<dtype> input) {
     return out;
 }
 
-template <typename dtype>
-Matrix<dtype> matrix_log(Matrix<dtype> input) {
-    // Element wise log
-    Matrix<dtype> out(input.rows, input.cols);
-    for (int i = 0; i < input.rows; i++) {
-	for (int j = 0; j < input.cols; j++) {
-	    out[i][j] = log(input[i][j]);
+template <typename dtype, typename Operator>
+Matrix<dtype> matrix_general(Matrix<dtype> a, Matrix<dtype> b, Operator op) {
+    Matrix<dtype> out(a.rows, a.cols);
+    if (a.cols == b.cols && a.rows == b.cols) {
+	// Element wise addittion; 
+	for (int i = 0; i < a.rows; i++) {
+	    for (int j = 0; j < a.rows; j++) {
+		out[i][j] = op(a[i][j], b[i][j]);
+	    }
 	}
+    }
+    else if (a.cols == b.cols && b.rows == 1) {
+	for (int i = 0; i < a.rows; i++) {
+	    for (int j = 0; j < a.cols; j++) {
+		out[i][j] = op(a[i][j], b[0][j]);
+	    }
+	}
+    } else if (a.rows == b.rows && b.cols == 1) {
+	for (int i = 0; i < a.rows; i++) {
+	    for (int j = 0; j < a.cols; j++) {
+		out[i][j] = op(a[i][j], b[i][0]);
+	    }
+	}
+    } else {
+	return a;
     }
     return out;
 }
 
 template <typename dtype>
-Matrix<dtype> matrix_exp(Matrix<dtype> input) {
-    // Element wise exponential
-    Matrix<dtype> out(input.rows, input.cols);
-    for (int i = 0; i < input.rows; i++) {
-	for (int j = 0; j < input.cols; j++) {
-	    out[i][j] = exp(input[i][j]);
-	}
-    }
-    return out;
+Matrix<dtype> matrix_add(Matrix<dtype> a, Matrix<dtype> b) {
+    return matrix_general(a, b, [](dtype x, dtype y){
+	return x + y;
+    });
 }
+
+template <typename dtype> 
+Matrix<dtype> matrix_subtract(Matrix<dtype> a, Matrix<dtype> b) {
+    return matrix_general(a, b, [](dtype x, dtype y){
+	return x - y;
+    });
+}
+
+template <typename dtype>
+Matrix<dtype> matrix_mul(Matrix<dtype> a, Matrix<dtype> b) {
+    return matrix_general(a, b, [](dtype x, dtype y){
+	return x * y;
+    });
+}
+
+template <typename dtype> 
+Matrix<dtype> matrix_division(Matrix<dtype> a, Matrix<dtype> b) {
+    return matrix_general(a, b, [](dtype x, dtype y){
+	return x / y;
+    });
+}
+
+// Note for the below implemenations, shouldnt do this
+// Maybe write seperate implementation for the case 
+// when matrix_general only requires one parameters
+// e.g. overload the function with a two parameter option
+template <typename dtype>
+Matrix<dtype> matrix_exp(Matrix<dtype> a) {
+    return matrix_general(a, a, [](dtype x, dtype y){
+	return exp(x);
+    });
+}
+
+template <typename dtype>
+Matrix<dtype> matrix_log(Matrix<dtype> a) {
+    return matrix_general(a, a, [](dtype x, dtype y){
+	return log(x);
+    });
+}
+

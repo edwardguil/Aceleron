@@ -27,6 +27,15 @@ void matrix_print(Matrix<dtype> matrix);
 template <typename dtype>
 Matrix<dtype> matrix_dot(Matrix<dtype> a, Matrix<dtype> b);
 
+template <typename dtype>
+Matrix<dtype> matrix_max(Matrix<dtype> input);
+
+template <typename dtype>
+Matrix<dtype> matrix_sum(Matrix<dtype> input);
+
+template <typename dtype, class Operator>
+Matrix<dtype> matrix_general(Matrix<dtype> a, Matrix<dtype> b, Operator op);
+
 template <typename dtype> 
 Matrix<dtype> matrix_add(Matrix<dtype> a, Matrix<dtype> b);
 
@@ -39,11 +48,6 @@ Matrix<dtype> matrix_mul(Matrix<dtype> a, Matrix<dtype> b);
 template <typename dtype> 
 Matrix<dtype> matrix_division(Matrix<dtype> a, Matrix<dtype> b);
 
-template <typename dtype>
-Matrix<dtype> matrix_max(Matrix<dtype> input);
-
-template <typename dtype>
-Matrix<dtype> matrix_sum(Matrix<dtype> input);
 
 template <typename dtype>
 Matrix<dtype> matrix_exp(Matrix<dtype> a);
