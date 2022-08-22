@@ -95,7 +95,7 @@ template <typename dtype, typename Operator>
 Matrix<dtype> matrix_general(Matrix<dtype> a, Matrix<dtype> b, Operator op) {
     Matrix<dtype> out(a.rows, a.cols);
     if (a.cols == b.cols && a.rows == b.cols) {
-	// Element wise addittion; 
+	// Element wise; 
 	for (int i = 0; i < a.rows; i++) {
 	    for (int j = 0; j < a.rows; j++) {
 		out[i][j] = op(a[i][j], b[i][j]);
@@ -148,21 +148,25 @@ Matrix<dtype> matrix_division(Matrix<dtype> a, Matrix<dtype> b) {
     });
 }
 
-// Note for the below implemenations, shouldnt do this
-// Maybe write seperate implementation for the case 
-// when matrix_general only requires one parameters
-// e.g. overload the function with a two parameter option
 template <typename dtype>
 Matrix<dtype> matrix_exp(Matrix<dtype> a) {
-    return matrix_general(a, a, [](dtype x, dtype y){
-	return exp(x);
-    });
+    Matrix<dtype> out(a.rows, a.cols);
+    for (int i = 0; i < a.rows; i++) {
+	for (int j = 0; j < a.cols; j++) {
+	    out[i][j] = exp(a[i][j]);
+	}
+    }
+    return out;
 }
 
 template <typename dtype>
 Matrix<dtype> matrix_log(Matrix<dtype> a) {
-    return matrix_general(a, a, [](dtype x, dtype y){
-	return log(x);
-    });
+    Matrix<dtype> out(a.rows, a.cols);
+    for (int i = 0; i < a.rows; i++) {
+	for (int j = 0; j < a.cols; j++) {
+	    out[i][j] = log(a[i][j]);
+	}
+    }
+    return out;
 }
 
