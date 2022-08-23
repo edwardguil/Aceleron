@@ -49,14 +49,12 @@ Matrix<dtype> matrix_dot(Matrix<dtype> a, Matrix<dtype> b) {
     // b should be weights
     for (int i = 0; i < a.rows; i++) {
 	// For each sample
-	for (int j = 0; j < b.cols; j++) {
-	    // For each neuron
-	    dtype product = 0; 
-	    for (int k = 0; k < a.cols; k++) {
-		// For each feature of that sample
-		product +=  a[i][k] * b[k][j];
+	for (int j = 0; j < a.cols; j++) {
+	    // For each feature in that row
+	    for (int k = 0; k < b.rows; k++) {
+		// For each neuron
+		out[i][j] +=  a[i][k] * b[k][j];
 	    }
-	    out[i][j] = product;
 	}
     }
     return out;
@@ -94,7 +92,7 @@ Matrix<dtype> matrix_sum(Matrix<dtype> input) {
 template <typename dtype, typename Operator>
 Matrix<dtype> matrix_general(Matrix<dtype> a, Matrix<dtype> b, Operator op) {
     Matrix<dtype> out(a.rows, a.cols);
-    if (a.cols == b.cols && a.rows == b.cols) {
+    if (a.rows == b.rows && a.cols == b.cols) {
 	// Element wise; 
 	for (int i = 0; i < a.rows; i++) {
 	    for (int j = 0; j < a.rows; j++) {
