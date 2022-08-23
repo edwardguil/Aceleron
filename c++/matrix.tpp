@@ -149,6 +149,17 @@ Matrix<dtype> matrix_division(Matrix<dtype> a, Matrix<dtype> b) {
 }
 
 template <typename dtype>
+Matrix<dtype> matrix_mulconst(Matrix<dtype> a, dtype b) {
+    Matrix<dtype> out(a.rows, a.cols);
+    for (int i = 0; i < a.rows; i++) {
+	for (int j = 0; j < a.cols; j++) {
+	    out[i][j] = a[i][j] * b;
+	}
+    }
+    return out;
+}
+
+template <typename dtype>
 Matrix<dtype> matrix_exp(Matrix<dtype> a) {
     Matrix<dtype> out(a.rows, a.cols);
     for (int i = 0; i < a.rows; i++) {

@@ -48,6 +48,8 @@ Matrix<dtype> matrix_mul(Matrix<dtype> a, Matrix<dtype> b);
 template <typename dtype> 
 Matrix<dtype> matrix_division(Matrix<dtype> a, Matrix<dtype> b);
 
+template <typename dtype>
+Matrix<dtype> matrix_mulconst(Matrix<dtype> a, dtype b);
 
 template <typename dtype>
 Matrix<dtype> matrix_exp(Matrix<dtype> a);
