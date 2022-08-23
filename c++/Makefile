@@ -1,10 +1,12 @@
-FLAGS := -Wall -pedantic -g
-COMPILER := g++
+CC := g++
+CFLAGS := -Wall -pedantic -g
+OBJFILES := layers.o losses.o
+TARGET := layers
 
-all: layers
+all: $(TARGET)
 
-layers: layers.cpp
-	$(COMPILER) $(FLAGS) -o layers layers.cpp
+$(TARGET): $(OBJFILES)
+	$(CC) $(CFLAGS) -o $(TARGET) $(OBJFILES)
 
 clean: 
-	rm layers
+	rm $(TARGET) $(OBJFILES)

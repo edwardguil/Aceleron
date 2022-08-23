@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <random>
 #include "matrix.h"
+#include "losses.h"
 
 class Layer {
     public:
@@ -37,8 +38,6 @@ public:
     Dense(int n_inputs, int n_neurons): weights(n_inputs, n_neurons), 
 	    biases(1, n_neurons, 1) 
        {
-	   biases[0][1] = 2;
-	   biases[0][2] = 3;
 	   randomize_weights();
        }
 
@@ -47,7 +46,7 @@ public:
 	std::uniform_real_distribution<float> distribution(0.0,1.0);
 	for (int i = 0; i < weights.rows; i++) {
 	    for (int j = 0; j < weights.cols; j++) {
-		weights[i][j] = distribution(generator);
+		weights[i][j] = (float) 1.0;//distribution(generator);
 	    }
 	}
     }
@@ -86,20 +85,34 @@ class Softmax: public Layer {
 
 int main() {
     // Lets setup our data
-    std::vector<std::vector<float>> in { {1, 2, 3},
-			       {-4, -5, -6}, 
+    std::vector<std::vector<float>> in { 
+	                       {1.0, 2.0, 3.0},
+			       {-4.0, -5.0, -6.0},  
+			       {7.0, 8.0, 9.0} };
     
-			       {7, 8, 9} };
+    std::vector<std::vector<float>> true_in { {0.0, 1.0},
+					   {1.0, 0.0},
+					   {0.0, 1.0} };
     Matrix<float> X(3, 3);
     X.set_matrix(in);
+    Matrix<float> y_true(3, 2);
+    y_true.set_matrix(true_in);
+
+    Dense layer1(3, 3);
+    ReLU layer2;
+    Dense layer3(3, 2);
+    Softmax layer4;
+    CategoricalCrossentropy loss;
     matrix_print(X);
-    matrix_print(matrix_add(X, X));
-    matrix_print(matrix_sum(X));
-    matrix_print(matrix_division(X, matrix_sum(X)));
-    Dense dense(3, 3);
-    // Lets define our layers
-    ReLU relu;
-    Softmax softmax;
-    matrix_print(softmax.forward(X));
+    Matrix<float> out1 = layer1.forward(X);
+    matrix_print(out1);
+    Matrix<float> out2 = layer2.forward(out1);
+    matrix_print(out2);
+    Matrix<float> out3 = layer3.forward(out2);
+    matrix_print(out3);
+    Matrix<float> out4 = layer4.forward(out3);
+    matrix_print(out4);
+    matrix_print(loss.loss(y_true, out4));
+
     return 1;
 }
