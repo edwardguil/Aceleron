@@ -93,6 +93,7 @@ int main() {
     Matrix<float> X(3, 3);
     X.set_matrix(in);
     matrix_print(X);
+    matrix_print(matrix_add(X, X));
     matrix_print(matrix_sum(X));
     matrix_print(matrix_division(X, matrix_sum(X)));
     Dense dense(3, 3);
