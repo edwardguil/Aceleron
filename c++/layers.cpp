@@ -1,84 +1,43 @@
-#include <iostream>
-#include <vector>
 #include <cstdlib>
 #include <random>
 #include "matrix.h"
-#include "losses.h"
+#include "layers.h"
 
-class Layer {
-    public:
-	virtual matrix::Matrix<float> forward(matrix::Matrix<float>) = 0;
-};
-
-
-class Dense : public Layer { 
-    // Weights:
-    //  Each col corrosponds to all the weights associated with a neuron.
-    //    Example:
-    //    3 inputs, 1 neuron in layer
-    // 	      [[0.xx],   
-    // 	      [0.xx],  X [[x.xx, x.xx, x.xx]]  
-    //        [0.xx]] :
-    //    3 inputs, 2 neuron
-    //        [[-0.xx, -0.xx],
-    //         [ 0.xx,  0.xx],
-    //         [ 0.xx,  0.xx]]
-    // Biases:
-    //   Each col corrosponds to the biases for the neuron
-    //   3 input, 1 neuron in layer.
-    //        [[0]]
-    //   3 input, 2 neuron in layer.
-    //        [[0, 0]]
-    matrix::Matrix<float> weights; 
-    matrix::Matrix<float> biases;
-	
-
-public:
     // Think of n_inputs actually as n_features of the input data
-    Dense(int n_inputs, int n_neurons): weights(n_inputs, n_neurons), 
-	    biases(1, n_neurons, 1) 
-       {
-	   randomize_weights();
-       }
+Dense::Dense(int n_inputs, int n_neurons): weights(n_inputs, n_neurons), 
+	    biases(1, n_neurons, 1) {
+       randomize_weights();
+};
 
-    void randomize_weights() {
-	std::default_random_engine generator;
-	std::uniform_real_distribution<float> distribution(0.0,1.0);
-	for (int i = 0; i < weights.rows; i++) {
-	    for (int j = 0; j < weights.cols; j++) {
-		weights[i][j] = (float) 1.0;//distribution(generator);
+void Dense::randomize_weights() {
+    std::default_random_engine generator;
+    std::uniform_real_distribution<float> distribution(0.0,1.0);
+    for (int i = 0; i < weights.rows; i++) {
+	for (int j = 0; j < weights.cols; j++) {
+	    weights[i][j] = (float) 1.0;//distribution(generator);
+	}
+    }
+};
+
+matrix::Matrix<float> Dense::forward(matrix::Matrix<float> input) {
+    // Calculate the dot product between each neuron and input data
+    return matrix::add(matrix::dot(input, weights), biases);
+}
+
+matrix::Matrix<float> ReLU::forward(matrix::Matrix<float> input) {
+    for (int i = 0; i < input.rows; i++) {
+	for (int j = 0; j < input.cols; j++) {
+	    if (input[i][j] < 0) {
+		input[i][j] = 0;
 	    }
 	}
     }
-
-    matrix::Matrix<float> forward(matrix::Matrix<float> input) {
-    	// Calculate the dot product between each neuron and input data
-	return matrix::add(matrix::dot(input, weights), biases);
-    }
-};
-
-class ReLU : public Layer {
-    
-public:
-    matrix::Matrix<float> forward(matrix::Matrix<float> input) {
-	for (int i = 0; i < input.rows; i++) {
-	    for (int j = 0; j < input.cols; j++) {
-		if (input[i][j] < 0) {
-		    input[i][j] = 0;
-		}
-	    }
-	}
-	return input;
-    }
-};
+    return input;
+}
 
 
-class Softmax: public Layer {
-
-public:
-    matrix::Matrix<float> forward(matrix::Matrix<float> input) {
-	matrix::Matrix<float> temp = matrix::exp(matrix::subtract(input, 
-		    matrix::max(input)));
-	return matrix::division(temp, matrix::sum(temp));
-    }
-};
+matrix::Matrix<float> Softmax::forward(matrix::Matrix<float> input) {
+    matrix::Matrix<float> temp = matrix::exp(matrix::subtract(input, 
+		matrix::max(input)));
+    return matrix::division(temp, matrix::sum(temp));
+}

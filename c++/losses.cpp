@@ -1,7 +1,6 @@
 #include "matrix.h"
 #include "losses.h"
 
-// Abstract Class
 float Loss::calculateLoss(matrix::Matrix<float> y_true, 
 	    matrix::Matrix<float> y_pred) {
     return 1.0; 
