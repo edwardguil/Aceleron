@@ -5,7 +5,10 @@
 #include <cmath>
 #include "matrix.h"
 
-template <typename dtype>
+namespace matrix 
+{
+
+    template <typename dtype>
 Matrix<dtype>::Matrix(int rows, int cols, dtype value): matrix(rows, 
 	std::vector<dtype>(cols, value)), rows(rows), cols(cols) {
 }
@@ -27,7 +30,7 @@ void Matrix<dtype>::set_matrix(std::vector<std::vector<dtype>> update) {
 }
 
 template <typename dtype>
-void matrix_print(Matrix<dtype> matrix) {
+void print(Matrix<dtype> matrix) {
     char* temp;
     std::cout << "[";
     for(int i = 0; i < matrix.rows; i++) {
@@ -43,7 +46,7 @@ void matrix_print(Matrix<dtype> matrix) {
 }
 
 template <typename dtype>
-Matrix<dtype> matrix_dot(Matrix<dtype> a, Matrix<dtype> b) {
+Matrix<dtype> dot(Matrix<dtype> a, Matrix<dtype> b) {
     Matrix<dtype> out(a.rows, b.cols);
     // a should be inputs
     // b should be weights
@@ -61,7 +64,7 @@ Matrix<dtype> matrix_dot(Matrix<dtype> a, Matrix<dtype> b) {
 }
 
 template <typename dtype>
-Matrix<dtype> matrix_max(Matrix<dtype> input) {
+Matrix<dtype> max(Matrix<dtype> input) {
     // finds max value over axis 1 (finds max value in each row)
     // keepdims = true
     Matrix<dtype> maxValues = Matrix<dtype>(input.rows, 1, (dtype) -INT_MAX); 
@@ -77,7 +80,7 @@ Matrix<dtype> matrix_max(Matrix<dtype> input) {
 
 
 template <typename dtype>
-Matrix<dtype> matrix_sum(Matrix<dtype> input) {
+Matrix<dtype> sum(Matrix<dtype> input) {
     // Sums over axis 1 (sums each row)
     // keepdims = true
     Matrix<dtype> out = Matrix<dtype>(input.rows, 1); 
@@ -119,35 +122,35 @@ Matrix<dtype> matrix_general(Matrix<dtype> a, Matrix<dtype> b, Operator op) {
 }
 
 template <typename dtype>
-Matrix<dtype> matrix_add(Matrix<dtype> a, Matrix<dtype> b) {
+Matrix<dtype> add(Matrix<dtype> a, Matrix<dtype> b) {
     return matrix_general(a, b, [](dtype x, dtype y){
 	return x + y;
     });
 }
 
 template <typename dtype> 
-Matrix<dtype> matrix_subtract(Matrix<dtype> a, Matrix<dtype> b) {
+Matrix<dtype> subtract(Matrix<dtype> a, Matrix<dtype> b) {
     return matrix_general(a, b, [](dtype x, dtype y){
 	return x - y;
     });
 }
 
 template <typename dtype>
-Matrix<dtype> matrix_mul(Matrix<dtype> a, Matrix<dtype> b) {
+Matrix<dtype> mul(Matrix<dtype> a, Matrix<dtype> b) {
     return matrix_general(a, b, [](dtype x, dtype y){
 	return x * y;
     });
 }
 
 template <typename dtype> 
-Matrix<dtype> matrix_division(Matrix<dtype> a, Matrix<dtype> b) {
+Matrix<dtype> division(Matrix<dtype> a, Matrix<dtype> b) {
     return matrix_general(a, b, [](dtype x, dtype y){
 	return x / y;
     });
 }
 
 template <typename dtype>
-Matrix<dtype> matrix_mulconst(Matrix<dtype> a, dtype b) {
+Matrix<dtype> mul_const(Matrix<dtype> a, dtype b) {
     Matrix<dtype> out(a.rows, a.cols);
     for (int i = 0; i < a.rows; i++) {
 	for (int j = 0; j < a.cols; j++) {
@@ -158,24 +161,25 @@ Matrix<dtype> matrix_mulconst(Matrix<dtype> a, dtype b) {
 }
 
 template <typename dtype>
-Matrix<dtype> matrix_exp(Matrix<dtype> a) {
+Matrix<dtype> exp(Matrix<dtype> a) {
     Matrix<dtype> out(a.rows, a.cols);
     for (int i = 0; i < a.rows; i++) {
 	for (int j = 0; j < a.cols; j++) {
-	    out[i][j] = exp(a[i][j]);
+	    out[i][j] = std::exp(a[i][j]);
 	}
     }
     return out;
 }
 
 template <typename dtype>
-Matrix<dtype> matrix_log(Matrix<dtype> a) {
+Matrix<dtype> log(Matrix<dtype> a) {
     Matrix<dtype> out(a.rows, a.cols);
     for (int i = 0; i < a.rows; i++) {
 	for (int j = 0; j < a.cols; j++) {
-	    out[i][j] = log(a[i][j]);
+	    out[i][j] = std::log(a[i][j]);
 	}
     }
     return out;
 }
 
+}

@@ -3,6 +3,10 @@
 
 #include <vector>
 
+
+
+namespace matrix 
+{
 template <typename dtype>
 class Matrix {
 
@@ -22,42 +26,42 @@ public:
 };
 
 template <typename dtype>
-void matrix_print(Matrix<dtype> matrix);
+void print(Matrix<dtype> matrix);
 
 template <typename dtype>
-Matrix<dtype> matrix_dot(Matrix<dtype> a, Matrix<dtype> b);
+Matrix<dtype> dot(Matrix<dtype> a, Matrix<dtype> b);
 
 template <typename dtype>
-Matrix<dtype> matrix_max(Matrix<dtype> input);
+Matrix<dtype> max(Matrix<dtype> input);
 
 template <typename dtype>
-Matrix<dtype> matrix_sum(Matrix<dtype> input);
+Matrix<dtype> sum(Matrix<dtype> input);
 
 template <typename dtype, class Operator>
-Matrix<dtype> matrix_general(Matrix<dtype> a, Matrix<dtype> b, Operator op);
+Matrix<dtype> general(Matrix<dtype> a, Matrix<dtype> b, Operator op);
 
 template <typename dtype> 
-Matrix<dtype> matrix_add(Matrix<dtype> a, Matrix<dtype> b);
+Matrix<dtype> add(Matrix<dtype> a, Matrix<dtype> b);
 
 template <typename dtype> 
-Matrix<dtype> matrix_subtract(Matrix<dtype> a, Matrix<dtype> b);
+Matrix<dtype> subtract(Matrix<dtype> a, Matrix<dtype> b);
 
 template <typename dtype>
-Matrix<dtype> matrix_mul(Matrix<dtype> a, Matrix<dtype> b);
+Matrix<dtype> mul(Matrix<dtype> a, Matrix<dtype> b);
 
 template <typename dtype> 
-Matrix<dtype> matrix_division(Matrix<dtype> a, Matrix<dtype> b);
+Matrix<dtype> division(Matrix<dtype> a, Matrix<dtype> b);
 
 template <typename dtype>
-Matrix<dtype> matrix_mulconst(Matrix<dtype> a, dtype b);
+Matrix<dtype> mul_const(Matrix<dtype> a, dtype b);
 
 template <typename dtype>
-Matrix<dtype> matrix_exp(Matrix<dtype> a);
+Matrix<dtype> exp(Matrix<dtype> a);
 
 template <typename dtype>
-Matrix<dtype> matrix_log(Matrix<dtype> a);
+Matrix<dtype> log(Matrix<dtype> a);
 
-
+}
 
 #include "matrix.tpp"
 
