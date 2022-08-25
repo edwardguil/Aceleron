@@ -38,6 +38,10 @@ int main() {
     print(loss.loss(y_true, out4));
     std::cout << loss.calculateLoss(y_true, out4) << "\n";
     std::cout << metric::accuracy(y_true, out4) << "\n";
+    
+
+    layer1.backward(X);
+
     return 1;
 }
 

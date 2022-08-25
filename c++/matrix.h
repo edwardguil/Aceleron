@@ -18,11 +18,15 @@ public:
 
     Matrix(int rows, int cols, dtype value = 0); 
 
+    Matrix();
+
     std::vector<dtype>& operator[](int i);
 
     unsigned long size();
 
     void set_matrix(std::vector<std::vector<dtype>> update);
+
+    Matrix<dtype> copy();
 };
 
 template <typename dtype>

@@ -30,6 +30,13 @@ void Matrix<dtype>::set_matrix(std::vector<std::vector<dtype>> update) {
 }
 
 template <typename dtype>
+Matrix<dtype> Matrix<dtype>::copy() {
+    Matrix<dtype> out(rows, cols);
+    out.set_matrix(matrix);
+    return out;
+}
+
+template <typename dtype>
 void print(Matrix<dtype> matrix) {
     char* temp;
     std::cout << "[";
