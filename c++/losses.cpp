@@ -3,7 +3,7 @@
 
 float Loss::calculateLoss(matrix::Matrix<float> y_true, 
 	    matrix::Matrix<float> y_pred) {
-    return 1.0; 
+    return matrix::sum(loss(y_true, y_pred), 1, false)[0][0] / y_true.rows; 
 }
 
 matrix::Matrix<float> CategoricalCrossentropy::loss(matrix::Matrix<float> y_true, 

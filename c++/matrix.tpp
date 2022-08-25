@@ -3,8 +3,8 @@
 #include <vector>
 #include <climits>
 #include <cmath>
+#include <type_traits>
 #include "matrix.h"
-
 namespace matrix 
 {
 
@@ -47,9 +47,9 @@ void print(Matrix<dtype> matrix) {
 
 template <typename dtype>
 Matrix<dtype> dot(Matrix<dtype> a, Matrix<dtype> b) {
-    Matrix<dtype> out(a.rows, b.cols);
     // a should be inputs
     // b should be weights
+    Matrix<dtype> out(a.rows, b.cols);
     for (int i = 0; i < a.rows; i++) {
 	// For each sample
 	for (int j = 0; j < a.cols; j++) {
@@ -67,7 +67,7 @@ template <typename dtype>
 Matrix<dtype> max(Matrix<dtype> input) {
     // finds max value over axis 1 (finds max value in each row)
     // keepdims = true
-    Matrix<dtype> maxValues = Matrix<dtype>(input.rows, 1, (dtype) -INT_MAX); 
+    Matrix<dtype> maxValues(input.rows, 1, (dtype) -INT_MAX); 
     for (int i = 0; i < input.rows; i++) {
 	for (int j = 0; j < input.cols; j++) {
 	    if (input[i][j] > maxValues[i][0]) {
@@ -80,16 +80,36 @@ Matrix<dtype> max(Matrix<dtype> input) {
 
 
 template <typename dtype>
-Matrix<dtype> sum(Matrix<dtype> input) {
-    // Sums over axis 1 (sums each row)
-    // keepdims = true
-    Matrix<dtype> out = Matrix<dtype>(input.rows, 1); 
-    for (int i = 0; i < input.rows; i++) {
-	for (int j = 0; j < input.cols; j++) {
-	    out[i][0] += input[i][j];
+Matrix<dtype> sum(Matrix<dtype> input, int axis, bool keepdims) {
+    // Default axis=1 and keepdims=true
+    if (keepdims) {
+	if (axis) {
+	    Matrix<dtype> out(input.rows, 1); 
+	    for (int i = 0; i < input.rows; i++) {
+		for (int j = 0; j < input.cols; j++) {
+		    out[i][0] += input[i][j];
+		}
+	    }
+	    return out;
+	} else {
+	    Matrix<dtype> out(1, input.cols);
+	    for (int i = 0; i < input.rows; i++) {
+		for (int j = 0; j < input.cols; j++) {
+		    out[0][j] += input[i][j];
+		}
+	    }
+	    return out;
 	}
+    } else {
+	Matrix<dtype> out(1, 1);
+	for (int i = 0; i < input.rows; i++) {
+	    for (int j = 0; j < input.cols; j++) {
+		out[0][0] += input[i][j];
+	    }
+	}
+	return out;
     }
-    return out;
+    return input;
 }
 
 template <typename dtype, typename Operator>
@@ -149,16 +169,16 @@ Matrix<dtype> division(Matrix<dtype> a, Matrix<dtype> b) {
     });
 }
 
-template <typename dtype>
-Matrix<dtype> mul_const(Matrix<dtype> a, dtype b) {
-    Matrix<dtype> out(a.rows, a.cols);
-    for (int i = 0; i < a.rows; i++) {
-	for (int j = 0; j < a.cols; j++) {
-	    out[i][j] = a[i][j] * b;
-	}
-    }
-    return out;
+template <typename dtype> 
+Matrix<dtype> equals(Matrix<dtype> a, Matrix<dtype> b) {
+    // This is only defined for when both inputs are Matrix<int>
+    // Can also utlizie |x - y| < EPISLON. 
+    return matrix_general(a, b, [](dtype x, dtype y){
+	return x == y;
+    });
 }
+
+
 
 template <typename dtype>
 Matrix<dtype> exp(Matrix<dtype> a) {
@@ -177,6 +197,33 @@ Matrix<dtype> log(Matrix<dtype> a) {
     for (int i = 0; i < a.rows; i++) {
 	for (int j = 0; j < a.cols; j++) {
 	    out[i][j] = std::log(a[i][j]);
+	}
+    }
+    return out;
+}
+
+template <typename dtype>
+Matrix<dtype> mul_const(Matrix<dtype> a, dtype b) {
+    Matrix<dtype> out(a.rows, a.cols);
+    for (int i = 0; i < a.rows; i++) {
+	for (int j = 0; j < a.cols; j++) {
+	    out[i][j] = a[i][j] * b;
+	}
+    }
+    return out;
+}
+
+template <typename dtype>
+Matrix<int> argmax(Matrix<dtype> a) {
+    // Finds idx of max value across axis=1 (rows)
+    Matrix<int> out(a.rows, 1);
+    dtype max;
+    for (int i = 0; i < a.rows; i++) {
+	max = a[i][0];
+	for (int  j = 1; j < a.cols; j++) {
+	    if (max < a[i][j]) {
+		out[i][0] = j;
+	    }
 	}
     }
     return out;

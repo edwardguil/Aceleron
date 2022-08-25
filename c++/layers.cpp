@@ -37,7 +37,11 @@ matrix::Matrix<float> ReLU::forward(matrix::Matrix<float> input) {
 
 
 matrix::Matrix<float> Softmax::forward(matrix::Matrix<float> input) {
+    matrix::print(matrix::max(input));
+    matrix::print(matrix::subtract(input, matrix::max(input)));
     matrix::Matrix<float> temp = matrix::exp(matrix::subtract(input, 
 		matrix::max(input)));
+    matrix::print(temp);
+    matrix::print(matrix::sum(temp));
     return matrix::division(temp, matrix::sum(temp));
 }
