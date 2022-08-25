@@ -3,9 +3,13 @@
 #include "matrix.h"
 #include "layers.h"
 
-    // Think of n_inputs actually as n_features of the input data
+// ------------- DENSE  -------------- //
+
+
+// Think of n_inputs actually as n_features of the input data
 Dense::Dense(int n_inputs, int n_neurons): weights(n_inputs, n_neurons), 
-	    biases(1, n_neurons, 1) {
+	    biases(1, n_neurons, 1), dweights(n_inputs, n_neurons), 
+	    dbiases(1, n_neurons, 1), inputs(n_inputs, n_inputs) { 
        randomize_weights();
 };
 
@@ -24,6 +28,16 @@ matrix::Matrix<float> Dense::forward(matrix::Matrix<float> input) {
     return matrix::add(matrix::dot(input, weights), biases);
 }
 
+matrix::Matrix<float> Dense::backward(matrix::Matrix<float> dinput) {
+    dweights = matrix::dot(inputs, dinput);
+    dbiases = matrix::sum(dinput, 0, true);
+    return matrix::dot(dinput, weights);
+}
+
+// ------------- RELU  -------------- //
+
+ReLU::ReLU(): inputs(1, 1) {}
+
 matrix::Matrix<float> ReLU::forward(matrix::Matrix<float> input) {
     for (int i = 0; i < input.rows; i++) {
 	for (int j = 0; j < input.cols; j++) {
@@ -35,13 +49,38 @@ matrix::Matrix<float> ReLU::forward(matrix::Matrix<float> input) {
     return input;
 }
 
+matrix::Matrix<float> ReLU::backward(matrix::Matrix<float> dinput) {
+    return dinput;
+}
+
+// ------------- SOFTMAX -------------- //
+
+Softmax::Softmax(): inputs(1, 1) {}
 
 matrix::Matrix<float> Softmax::forward(matrix::Matrix<float> input) {
-    matrix::print(matrix::max(input));
-    matrix::print(matrix::subtract(input, matrix::max(input)));
     matrix::Matrix<float> temp = matrix::exp(matrix::subtract(input, 
 		matrix::max(input)));
-    matrix::print(temp);
-    matrix::print(matrix::sum(temp));
     return matrix::division(temp, matrix::sum(temp));
+}
+
+matrix::Matrix<float> Softmax::backward(matrix::Matrix<float> dinput) {
+    return dinput;
+}
+
+// ------------- SOFTMAX CROSSENTROPY  -------------- //
+
+matrix::Matrix<float> SoftmaxCrossEntropy::forward(matrix::Matrix<float> input, 
+	    matrix::Matrix<float> y_true) {
+    matrix::Matrix<float> out = softmax.forward(input);
+    loss = crossEntropy.calculateLoss(out, y_true);
+    return out;
+}
+
+matrix::Matrix<float> SoftmaxCrossEntropy::backward(matrix::Matrix<float> dinput, 
+	    matrix::Matrix<float> y_true) {
+    // Expects y_true to be one hot encoded
+    matrix::Matrix<int> converted = matrix::argmax(y_true);
+    matrix::Matrix<float> dinputCpy = dinput.copy();
+    return dinput;
+
 }
