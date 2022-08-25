@@ -1,6 +1,7 @@
 #include "matrix.h"
 #include "losses.h"
 #include "layers.h"
+#include "metrics.h"
 
 using namespace matrix;
 
@@ -11,9 +12,9 @@ int main() {
 			       {-4.0, -5.0, -6.0},  
 			       {7.0, 8.0, 9.0} };
     
-    std::vector<std::vector<float>> true_in { {0.0, 1.0},
-					   {1.0, 0.0},
-					   {0.0, 1.0} };
+    std::vector<std::vector<float>> true_in {{0, 1},
+					   {1, 0},
+					   {0, 1}};
     Matrix<float> X(3, 3);
     X.set_matrix(in);
     Matrix<float> y_true(3, 2);
@@ -31,10 +32,12 @@ int main() {
     print(out2);
     Matrix<float> out3 = layer3.forward(out2);
     print(out3);
+    std::cout << "Start of softmax \n";
     Matrix<float> out4 = layer4.forward(out3);
     print(out4);
     print(loss.loss(y_true, out4));
-
+    std::cout << loss.calculateLoss(y_true, out4) << "\n";
+    std::cout << metric::accuracy(y_true, out4) << "\n";
     return 1;
 }
 

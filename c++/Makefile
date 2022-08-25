@@ -1,6 +1,6 @@
 CC := g++
 CFLAGS := -Wall -pedantic -g
-OBJFILES := driver.o layers.o losses.o
+OBJFILES := driver.o layers.o losses.o metrics.o
 TARGET := driver
 
 all: $(TARGET)
