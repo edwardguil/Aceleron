@@ -26,6 +26,10 @@ public:
     matrix::Matrix<float> backward(matrix::Matrix<float> dinput);
     matrix::Matrix<float> get_dbiases();
     matrix::Matrix<float> get_dweights();
+    matrix::Matrix<float> get_biases();
+    matrix::Matrix<float> get_weights();
+    void set_biases(matrix::Matrix<float> new_biases);
+    void set_weights(matrix::Matrix<float> new_weights);
 
 };
 

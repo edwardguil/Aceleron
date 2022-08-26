@@ -43,6 +43,20 @@ matrix::Matrix<float> Dense::get_dbiases() {
     return dbiases;
 }
 
+matrix::Matrix<float> Dense::get_biases() {
+    return biases;
+}
+
+matrix::Matrix<float> Dense::get_weights() {
+    return weights;
+}
+void Dense::set_biases(matrix::Matrix<float> new_biases) {
+    biases = new_biases;
+}
+void Dense::set_weights(matrix::Matrix<float> new_weights) {
+    weights = new_weights;
+}
+
 // ------------- RELU  -------------- //
 
 ReLU::ReLU(): inputs(1, 1) {}
