@@ -24,6 +24,9 @@ public:
 
     matrix::Matrix<float> forward(matrix::Matrix<float> input);
     matrix::Matrix<float> backward(matrix::Matrix<float> dinput);
+    matrix::Matrix<float> get_dbiases();
+    matrix::Matrix<float> get_dweights();
+
 };
 
 class ReLU : public Layer {    
@@ -44,16 +47,17 @@ public:
 
 };
 
-class SoftmaxCrossEntropy : public Layer {
+class SoftmaxCrossEntropy {
     float loss;
     Softmax softmax;
     CategoricalCrossentropy crossEntropy;
 public:
+    SoftmaxCrossEntropy(void);
     matrix::Matrix<float> forward(matrix::Matrix<float> input, 
 	    matrix::Matrix<float> y_true);
     matrix::Matrix<float> backward(matrix::Matrix<float> dinput, 
 	    matrix::Matrix<float> y_true);
-
+    float get_loss();
 };
 
 #endif

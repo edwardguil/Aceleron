@@ -119,6 +119,17 @@ Matrix<dtype> sum(Matrix<dtype> input, int axis, bool keepdims) {
     return input;
 }
 
+template <typename dtype>
+Matrix<dtype> transpose(Matrix<dtype> input) {
+    Matrix<dtype> out(input.cols, input.rows);
+    for (int i = 0; i < input.rows; i++) {
+	for (int j = 0; j < input.cols; j++) {
+	    out[j][i] = input[i][j];
+	}
+    }
+    return out;
+}
+
 template <typename dtype, typename Operator>
 Matrix<dtype> matrix_general(Matrix<dtype> a, Matrix<dtype> b, Operator op) {
     Matrix<dtype> out(a.rows, a.cols);
@@ -140,6 +151,12 @@ Matrix<dtype> matrix_general(Matrix<dtype> a, Matrix<dtype> b, Operator op) {
 	for (int i = 0; i < a.rows; i++) {
 	    for (int j = 0; j < a.cols; j++) {
 		out[i][j] = op(a[i][j], b[i][0]);
+	    }
+	}
+    } else if (b.rows == 1 && b.cols == 1) {
+	for (int i = 0; i < a.rows; i++) {
+	    for (int j = 0; j < a.cols; j++) {
+		out[i][j] = op(a[i][j], b[0][0]);
 	    }
 	}
     } else {

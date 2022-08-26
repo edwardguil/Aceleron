@@ -41,6 +41,9 @@ Matrix<dtype> max(Matrix<dtype> input);
 template <typename dtype>
 Matrix<dtype> sum(Matrix<dtype> input, int axis = 1, bool keepdims = true);
 
+template <typename dtype>
+Matrix<dtype> transpose(Matrix<dtype> input);
+
 template <typename dtype, class Operator>
 Matrix<dtype> general(Matrix<dtype> a, Matrix<dtype> b, Operator op);
 
