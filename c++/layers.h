@@ -7,15 +7,16 @@ class Layer {
 public:
     virtual matrix::Matrix<float> forward(matrix::Matrix<float>) = 0;
     virtual matrix::Matrix<float> backward(matrix::Matrix<float>) = 0;
+    virtual matrix::Matrix<float> backward(matrix::Matrix<float>, 
+		matrix::Matrix<float>) = 0;
 };
 
 
-class Dense : public Layer { 
+class Dense { 
     matrix::Matrix<float> weights; 
     matrix::Matrix<float> biases;
     matrix::Matrix<float> dweights;
     matrix::Matrix<float> dbiases;
-    matrix::Matrix<float> inputs;
 
 public:
     
@@ -24,7 +25,8 @@ public:
     void randomize_weights();
 
     matrix::Matrix<float> forward(matrix::Matrix<float> input);
-    matrix::Matrix<float> backward(matrix::Matrix<float> dinput);
+    matrix::Matrix<float> backward(matrix::Matrix<float> inputs, 
+		matrix::Matrix<float> dinput);
     matrix::Matrix<float> get_dbiases();
     matrix::Matrix<float> get_dweights();
     matrix::Matrix<float> get_biases();
@@ -34,16 +36,17 @@ public:
 
 };
 
-class ReLU : public Layer {    
+class ReLU {    
     matrix::Matrix<float> inputs;
 public:
     ReLU(void);
     matrix::Matrix<float> forward(matrix::Matrix<float> input);
-    matrix::Matrix<float> backward(matrix::Matrix<float> dinput);
+    matrix::Matrix<float> backward(matrix::Matrix<float> inputs, 
+		matrix::Matrix<float> dinput);
 
 };
 
-class Softmax : public Layer {
+class Softmax {
     matrix::Matrix<float> inputs;
 public:
     Softmax(void);
