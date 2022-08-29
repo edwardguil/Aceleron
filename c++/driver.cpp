@@ -41,9 +41,9 @@ int main() {
 
     std::cout << "Start of backprop relu and dense" << std::endl;
 
-    Matrix<float> test1 = layer2.backward(out2);
+    Matrix<float> test1 = layer2.backward(out1, out2);
     print(test1);
-    Matrix<float> test2 = layer1.backward(test1);
+    Matrix<float> test2 = layer1.backward(X, test1);
     print(test2);
     print(layer1.get_dbiases());
     print(layer1.get_dweights());
@@ -61,11 +61,11 @@ int main() {
     std::cout << "Start of backprop full" << std::endl;
     Matrix<float> back4 = layer4.backward(out4, y_true);
     print(back4);
-    Matrix<float> back3 = layer3.backward(back4);
+    Matrix<float> back3 = layer3.backward(out2, back4);
     print(back3);
-    Matrix<float> back2 = layer2.backward(back3);
+    Matrix<float> back2 = layer2.backward(out1, back3);
     print(back2);
-    Matrix<float> back1 = layer1.backward(back2);
+    Matrix<float> back1 = layer1.backward(X, back2);
     print(back1);
     
     std::cout << "Start Of optimizer test" << std::endl;

@@ -1,12 +1,19 @@
 CC := g++
 CFLAGS := -Wall -pedantic -g
 OBJFILES := driver.o layers.o losses.o metrics.o optimizers.o
+OBJFILES2 := driver2.o layers.o losses.o metrics.o optimizers.o
 TARGET := driver
 
-all: $(TARGET)
+all: $(TARGET) driver2
 
-$(TARGET): $(OBJFILES)
+driver2 : $(OBJFILES2)
+	$(CC) $(CFLAGS) -o driver2 $(OBJFILES2)
+
+$(TARGET) : $(OBJFILES)
 	$(CC) $(CFLAGS) -o $(TARGET) $(OBJFILES)
+
+driver2.o : driver2.cpp
+	$(CC) $(CFLAGS) -c driver2.cpp -o driver2.o
 
 driver.o : driver.cpp
 	$(CC) $(CFLAGS) -c driver.cpp -o driver.o
