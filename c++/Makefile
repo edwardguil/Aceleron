@@ -1,6 +1,6 @@
 CC := g++
 CFLAGS := -Wall -pedantic -g
-OBJFILES := driver.o layers.o losses.o metrics.o
+OBJFILES := driver.o layers.o losses.o metrics.o optimizers.o
 TARGET := driver
 
 all: $(TARGET)
@@ -19,5 +19,8 @@ losses.o : losses.cpp
 
 metrics.o : metrics.cpp
 	$(CC) $(CFLAGS) -c metrics.cpp -o metrics.o
+
+optimizers.o : optimizers.cpp
+	$(CC) $(CFLAGS) -c optimizers.cpp -o optimizers.o
 clean: 
 	rm $(TARGET) $(OBJFILES)

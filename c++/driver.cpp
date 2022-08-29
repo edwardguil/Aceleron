@@ -2,6 +2,7 @@
 #include "losses.h"
 #include "layers.h"
 #include "metrics.h"
+#include "optimizers.h"
 
 using namespace matrix;
 
@@ -25,6 +26,7 @@ int main() {
     Dense layer3(3, 2);
     SoftmaxCrossEntropy layer4;
     print(X);
+
     Matrix<float> out1 = layer1.forward(X);
     print(out1);
     Matrix<float> out2 = layer2.forward(out1);
@@ -39,10 +41,10 @@ int main() {
 
     std::cout << "Start of backprop relu and dense" << std::endl;
 
-    Matrix<float> back1 = layer2.backward(out2);
-    print(back1);
-    Matrix<float> back2 = layer1.backward(back1);
-    print(back2);
+    Matrix<float> test1 = layer2.backward(out2);
+    print(test1);
+    Matrix<float> test2 = layer1.backward(test1);
+    print(test2);
     print(layer1.get_dbiases());
     print(layer1.get_dweights());
 
@@ -55,9 +57,39 @@ int main() {
     softmaxOut.set_matrix(test_in);
     Matrix<float> test5 = layer4.backward(softmaxOut, y_true);
     print(test5);
+    
     std::cout << "Start of backprop full" << std::endl;
-
-
+    Matrix<float> back4 = layer4.backward(out4, y_true);
+    print(back4);
+    Matrix<float> back3 = layer3.backward(back4);
+    print(back3);
+    Matrix<float> back2 = layer2.backward(back3);
+    print(back2);
+    Matrix<float> back1 = layer1.backward(back2);
+    print(back1);
+    
+    std::cout << "Start Of optimizer test" << std::endl;
+    std::cout << "      Weights pre: " << std::endl;
+    print(layer3.get_weights());
+    print(layer3.get_dweights());
+    print(layer1.get_weights());
+    print(layer1.get_dweights());
+    std::cout << "      Biases pre: " << std::endl;
+    print(layer3.get_biases());
+    print(layer3.get_dbiases());
+    print(layer1.get_biases());
+    print(layer1.get_dbiases());
+    optimizer::SGD sgd(1, 0);
+    sgd.pre_update();
+    sgd.update(&layer3);
+    sgd.update(&layer1);
+    sgd.post_update();
+    std::cout << "      Weights post: " << std::endl;
+    print(layer3.get_weights());
+    print(layer1.get_weights());
+    std::cout << "      Biases post: " << std::endl;
+    print(layer3.get_biases());
+    print(layer1.get_biases());
     return 1;
 }
 

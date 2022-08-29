@@ -9,7 +9,8 @@
 // Think of n_inputs actually as n_features of the input data
 Dense::Dense(int n_inputs, int n_neurons): weights(n_inputs, n_neurons), 
 	    biases(1, n_neurons, 1), dweights(n_inputs, n_neurons), 
-	    dbiases(1, n_neurons, 1), inputs(n_inputs, n_inputs) { 
+	    dbiases(1, n_neurons, 1), inputs(n_inputs, n_inputs) 
+	    { 
        randomize_weights();
 }
 
@@ -30,9 +31,11 @@ matrix::Matrix<float> Dense::forward(matrix::Matrix<float> input) {
 }
 
 matrix::Matrix<float> Dense::backward(matrix::Matrix<float> dinput) {
+
     dweights = matrix::dot(matrix::transpose(inputs), dinput);
     dbiases = matrix::sum(dinput, 0, true);
-    return matrix::dot(dinput, weights);
+
+    return matrix::dot(dinput, matrix::transpose(weights));
 }
 
 matrix::Matrix<float> Dense::get_dweights() {
@@ -51,10 +54,10 @@ matrix::Matrix<float> Dense::get_weights() {
     return weights;
 }
 void Dense::set_biases(matrix::Matrix<float> new_biases) {
-    biases = new_biases;
+    biases = new_biases.copy();
 }
 void Dense::set_weights(matrix::Matrix<float> new_weights) {
-    weights = new_weights;
+    weights = new_weights.copy();
 }
 
 // ------------- RELU  -------------- //
