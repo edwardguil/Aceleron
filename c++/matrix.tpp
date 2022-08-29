@@ -30,6 +30,12 @@ void Matrix<dtype>::set_matrix(std::vector<std::vector<dtype>> update) {
 }
 
 template <typename dtype>
+Matrix<dtype> Matrix<dtype>::get_matrix() {
+    // Dangerous, only use this to initialize
+    return matrix;
+}
+
+template <typename dtype>
 Matrix<dtype> Matrix<dtype>::copy() {
     Matrix<dtype> out(rows, cols);
     out.set_matrix(matrix);
@@ -134,9 +140,8 @@ template <typename dtype, typename Operator>
 Matrix<dtype> matrix_general(Matrix<dtype> a, Matrix<dtype> b, Operator op) {
     Matrix<dtype> out(a.rows, a.cols);
     if (a.rows == b.rows && a.cols == b.cols) {
-	// Element wise; 
 	for (int i = 0; i < a.rows; i++) {
-	    for (int j = 0; j < a.rows; j++) {
+	    for (int j = 0; j < a.cols; j++) {
 		out[i][j] = op(a[i][j], b[i][j]);
 	    }
 	}
@@ -231,7 +236,7 @@ Matrix<dtype> mul_const(Matrix<dtype> a, dtype b) {
     Matrix<dtype> out(a.rows, a.cols);
     for (int i = 0; i < a.rows; i++) {
 	for (int j = 0; j < a.cols; j++) {
-	    out[i][j] = a[i][j] * b;
+	    out[i][j] = a[i][j] * (float) b;
 	}
     }
     return out;

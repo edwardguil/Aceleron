@@ -16,8 +16,9 @@ class Dense : public Layer {
     matrix::Matrix<float> dweights;
     matrix::Matrix<float> dbiases;
     matrix::Matrix<float> inputs;
-	
+
 public:
+    
     Dense(int n_inputs, int n_neurons);
 
     void randomize_weights();

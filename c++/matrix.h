@@ -26,6 +26,8 @@ public:
 
     void set_matrix(std::vector<std::vector<dtype>> update);
 
+    Matrix<dtype> get_matrix();
+    
     Matrix<dtype> copy();
 };
 
