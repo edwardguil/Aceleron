@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstdlib>
+#include <cstdio>
 #include <vector>
 #include <climits>
 #include <cmath>
@@ -8,7 +9,7 @@
 namespace matrix 
 {
 
-    template <typename dtype>
+template <typename dtype>
 Matrix<dtype>::Matrix(int rows, int cols, dtype value): matrix(rows, 
 	std::vector<dtype>(cols, value)), rows(rows), cols(cols) {
 }
@@ -65,7 +66,7 @@ Matrix<dtype> dot(Matrix<dtype> a, Matrix<dtype> b) {
     Matrix<dtype> out(a.rows, b.cols);
     for (int i = 0; i < a.rows; i++) {
 	// For each sample
-	for (int j = 0; j < a.cols; j++) {
+	for (int j = 0; j < b.cols; j++) {
 	    // For each feature in that row
 	    for (int k = 0; k < b.rows; k++) {
 		// For each neuron

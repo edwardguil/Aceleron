@@ -12,7 +12,6 @@ SGD::SGD(float learning_rate, float decay): learning_rate(learning_rate),
 
 void SGD::pre_update() {
     current_learning_rate = learning_rate * (1.0 / (1.0 + decay * iterations));
-    std::cout << "Current Learning Rate: " << current_learning_rate << std::endl;
 }
 
 void SGD::update(Dense* layer) {

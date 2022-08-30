@@ -21,9 +21,9 @@ int main() {
     Matrix<float> y_true(3, 2);
     y_true.set_matrix(true_in);
 
-    Dense layer1(3, 3);
+    Dense layer1(3, 2);
     ReLU layer2;
-    Dense layer3(3, 2);
+    Dense layer3(2, 2);
     SoftmaxCrossEntropy layer4;
     print(X);
 
