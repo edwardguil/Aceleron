@@ -8,6 +8,7 @@
 using namespace matrix;
 
 int main() {
+    
     Matrix<float> x_train(600, 2);
     x_train.set_matrix(x_train_raw);
     Matrix<float> y_train(600, 2);
@@ -19,13 +20,13 @@ int main() {
     Matrix<float> y_test(200, 2);
     y_test.set_matrix(y_train_raw);
 
-    Dense layer1(2, 32);
+    Dense layer1(2, 8);
     ReLU layer2;
-    Dense layer3(32, 2);
+    Dense layer3(8, 2);
     SoftmaxCrossEntropy layer4;
     optimizer::SGD sgd(1, 0.001);
 
-    //for (int i = 0; i < 10001; i++) {
+    for (int i = 0; i < 10001; i++) {
 
 	Matrix<float> out1 = layer1.forward(x_train);
 	Matrix<float> out2 = layer2.forward(out1);
@@ -39,12 +40,11 @@ int main() {
 	Matrix<float> back2 = layer2.backward(out1, back3);
 	Matrix<float> back1 = layer1.backward(x_train, back2);
 	
+	
 	sgd.pre_update();
 	sgd.update(&layer3);
 	sgd.update(&layer1);
 	sgd.post_update();
-
-	/*
 	if (i % 100 == 0) {
 	    Matrix<float> outtest1 = layer1.forward(x_test);
 	    Matrix<float> outtest2 = layer2.forward(outtest1);
@@ -61,7 +61,6 @@ int main() {
 	}
 
     }
-    */
 
 
     return 1;

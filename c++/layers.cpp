@@ -1,7 +1,9 @@
 #include <cstdlib>
 #include <random>
+#include <cstdio>
 #include "matrix.h"
 #include "layers.h"
+
 
 // ------------- DENSE  -------------- //
 
@@ -32,7 +34,10 @@ matrix::Matrix<float> Dense::forward(matrix::Matrix<float> input) {
 matrix::Matrix<float> Dense::backward(matrix::Matrix<float> inputs, 
 	    matrix::Matrix<float> dinput) {
 
-    dweights = matrix::dot(matrix::transpose(inputs), dinput);
+
+    matrix::Matrix<float> temp = matrix::dot(matrix::transpose(inputs), dinput);
+    dweights = temp;
+
     dbiases = matrix::sum(dinput, 0, true);
 
     return matrix::dot(dinput, matrix::transpose(weights));
