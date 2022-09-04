@@ -4,7 +4,7 @@
 
 namespace metric
 {
-    float accuracy(matrix::Matrix<float> y_true, matrix::Matrix<float> y_pred);
+    double accuracy(matrix::Matrix<double> y_true, matrix::Matrix<double> y_pred);
 }
 
 #endif

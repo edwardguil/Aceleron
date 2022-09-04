@@ -5,18 +5,18 @@
 
 class Layer {
 public:
-    virtual matrix::Matrix<float> forward(matrix::Matrix<float>) = 0;
-    virtual matrix::Matrix<float> backward(matrix::Matrix<float>) = 0;
-    virtual matrix::Matrix<float> backward(matrix::Matrix<float>, 
-		matrix::Matrix<float>) = 0;
+    virtual matrix::Matrix<double> forward(matrix::Matrix<double>) = 0;
+    virtual matrix::Matrix<double> backward(matrix::Matrix<double>) = 0;
+    virtual matrix::Matrix<double> backward(matrix::Matrix<double>, 
+		matrix::Matrix<double>) = 0;
 };
 
 
 class Dense { 
-    matrix::Matrix<float> weights; 
-    matrix::Matrix<float> biases;
-    matrix::Matrix<float> dweights;
-    matrix::Matrix<float> dbiases;
+    matrix::Matrix<double> weights; 
+    matrix::Matrix<double> biases;
+    matrix::Matrix<double> dweights;
+    matrix::Matrix<double> dbiases;
 
 public:
     
@@ -24,48 +24,48 @@ public:
 
     void randomize_weights();
 
-    matrix::Matrix<float> forward(matrix::Matrix<float> input);
-    matrix::Matrix<float> backward(matrix::Matrix<float> inputs, 
-		matrix::Matrix<float> dinput);
-    matrix::Matrix<float> get_dbiases();
-    matrix::Matrix<float> get_dweights();
-    matrix::Matrix<float> get_biases();
-    matrix::Matrix<float> get_weights();
-    void set_biases(matrix::Matrix<float> new_biases);
-    void set_weights(matrix::Matrix<float> new_weights);
+    matrix::Matrix<double> forward(matrix::Matrix<double> input);
+    matrix::Matrix<double> backward(matrix::Matrix<double> inputs, 
+		matrix::Matrix<double> dinput);
+    matrix::Matrix<double> get_dbiases();
+    matrix::Matrix<double> get_dweights();
+    matrix::Matrix<double> get_biases();
+    matrix::Matrix<double> get_weights();
+    void set_biases(matrix::Matrix<double> new_biases);
+    void set_weights(matrix::Matrix<double> new_weights);
 
 };
 
 class ReLU {    
-    matrix::Matrix<float> inputs;
+    matrix::Matrix<double> inputs;
 public:
     ReLU(void);
-    matrix::Matrix<float> forward(matrix::Matrix<float> input);
-    matrix::Matrix<float> backward(matrix::Matrix<float> inputs, 
-		matrix::Matrix<float> dinput);
+    matrix::Matrix<double> forward(matrix::Matrix<double> input);
+    matrix::Matrix<double> backward(matrix::Matrix<double> inputs, 
+		matrix::Matrix<double> dinput);
 
 };
 
 class Softmax {
-    matrix::Matrix<float> inputs;
+    matrix::Matrix<double> inputs;
 public:
     Softmax(void);
-    matrix::Matrix<float> forward(matrix::Matrix<float> input);
-    matrix::Matrix<float> backward(matrix::Matrix<float> dinput);
+    matrix::Matrix<double> forward(matrix::Matrix<double> input);
+    matrix::Matrix<double> backward(matrix::Matrix<double> dinput);
 
 };
 
 class SoftmaxCrossEntropy {
-    float loss;
+    double loss;
     Softmax softmax;
     CategoricalCrossentropy crossEntropy;
 public:
     SoftmaxCrossEntropy(void);
-    matrix::Matrix<float> forward(matrix::Matrix<float> input, 
-	    matrix::Matrix<float> y_true);
-    matrix::Matrix<float> backward(matrix::Matrix<float> dinput, 
-	    matrix::Matrix<float> y_true);
-    float get_loss();
+    matrix::Matrix<double> forward(matrix::Matrix<double> input, 
+	    matrix::Matrix<double> y_true);
+    matrix::Matrix<double> backward(matrix::Matrix<double> dinput, 
+	    matrix::Matrix<double> y_true);
+    double get_loss();
 };
 
 #endif
