@@ -5,23 +5,23 @@
 class Loss {
 public: 
     // Abstract Method
-    virtual matrix::Matrix<float> loss(matrix::Matrix<float> y_true, 
-		matrix::Matrix<float> y_pred) = 0;
+    virtual matrix::Matrix<double> loss(matrix::Matrix<double> y_true, 
+		matrix::Matrix<double> y_pred) = 0;
     
-    float calculateLoss(matrix::Matrix<float> y_true, 
-		matrix::Matrix<float> y_pred);
+    double calculateLoss(matrix::Matrix<double> y_true, 
+		matrix::Matrix<double> y_pred);
 };
 
 
 class CategoricalCrossentropy: public Loss {
 public: 
-    matrix::Matrix<float> loss(matrix::Matrix<float> y_true, 
-		matrix::Matrix<float> y_pred);
+    matrix::Matrix<double> loss(matrix::Matrix<double> y_true, 
+		matrix::Matrix<double> y_pred);
 };
 
 class SparseCategoricalCrossentropy: public Loss {
 public: 
-    matrix::Matrix<float> loss(matrix::Matrix<float> y_true, 
-		matrix::Matrix<float> y_pred);
+    matrix::Matrix<double> loss(matrix::Matrix<double> y_true, 
+		matrix::Matrix<double> y_pred);
 };
 #endif
