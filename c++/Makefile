@@ -30,4 +30,4 @@ metrics.o : metrics.cpp
 optimizers.o : optimizers.cpp
 	$(CC) $(CFLAGS) -c optimizers.cpp -o optimizers.o
 clean: 
-	rm $(TARGET) $(OBJFILES)
+	rm $(TARGET) driver2.o driver2 $(OBJFILES)

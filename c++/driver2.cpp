@@ -28,9 +28,9 @@ int main(int argc, char *argv[]) {
     Matrix<double> y_test(N - train_size, 2);
 	handle_input(x_train, y_train, x_test, y_test, N);
 
-    Dense layer1(2, 32);
+    Dense layer1(2, 16);
     ReLU layer2;
-    Dense layer3(32, 2);
+    Dense layer3(16, 2);
     SoftmaxCrossEntropy layer4;
     optimizer::SGD sgd(1.0, 0.001);
 
