@@ -26,13 +26,13 @@ void Dense::randomize_weights() {
     }
 }
 
-matrix::Matrix<double> Dense::forward(matrix::Matrix<double> input) {
+matrix::Matrix<double> Dense::forward(matrix::Matrix<double>& input) {
     // Calculate the dot product between each neuron and input data
     return matrix::add(matrix::dot(input, weights), biases);
 }
 
-matrix::Matrix<double> Dense::backward(matrix::Matrix<double> inputs, 
-	    matrix::Matrix<double> dinput) {
+matrix::Matrix<double> Dense::backward(matrix::Matrix<double>& inputs, 
+	    matrix::Matrix<double>& dinput) {
 
 
     matrix::Matrix<double> temp = matrix::dot(matrix::transpose(inputs), dinput);
@@ -69,7 +69,7 @@ void Dense::set_weights(matrix::Matrix<double> new_weights) {
 
 ReLU::ReLU(): inputs(1, 1) {}
 
-matrix::Matrix<double> ReLU::forward(matrix::Matrix<double> input) {
+matrix::Matrix<double> ReLU::forward(matrix::Matrix<double>& input) {
     for (int i = 0; i < input.rows; i++) {
 	for (int j = 0; j < input.cols; j++) {
 	    if (input[i][j] < 0) {
@@ -80,8 +80,8 @@ matrix::Matrix<double> ReLU::forward(matrix::Matrix<double> input) {
     return input;
 }
 
-matrix::Matrix<double> ReLU::backward(matrix::Matrix<double> inputs, 
-	    matrix::Matrix<double> dinput) {
+matrix::Matrix<double> ReLU::backward(matrix::Matrix<double>& inputs, 
+	    matrix::Matrix<double>& dinput) {
     for (int i = 0; i < dinput.rows; i++) {
 	for (int j = 0; j < dinput.cols; j++) {
 	    if (inputs[i][j] <= 0) {
@@ -96,13 +96,13 @@ matrix::Matrix<double> ReLU::backward(matrix::Matrix<double> inputs,
 
 Softmax::Softmax(): inputs(1, 1) {}
 
-matrix::Matrix<double> Softmax::forward(matrix::Matrix<double> input) {
+matrix::Matrix<double> Softmax::forward(matrix::Matrix<double>& input) {
     matrix::Matrix<double> temp = matrix::exp(matrix::subtract(input, 
 		matrix::max(input)));
     return matrix::division(temp, matrix::sum(temp));
 }
 
-matrix::Matrix<double> Softmax::backward(matrix::Matrix<double> dinput) {
+matrix::Matrix<double> Softmax::backward(matrix::Matrix<double>& dinput) {
     return dinput;
 }
 
@@ -110,15 +110,15 @@ matrix::Matrix<double> Softmax::backward(matrix::Matrix<double> dinput) {
 
 SoftmaxCrossEntropy::SoftmaxCrossEntropy(void): softmax(), crossEntropy() {}
 
-matrix::Matrix<double> SoftmaxCrossEntropy::forward(matrix::Matrix<double> input, 
-	    matrix::Matrix<double> y_true) {
+matrix::Matrix<double> SoftmaxCrossEntropy::forward(matrix::Matrix<double>& input, 
+	    matrix::Matrix<double>& y_true) {
     matrix::Matrix<double> out = softmax.forward(input);
     loss = crossEntropy.calculateLoss(out, y_true);
     return out;
 }
 
-matrix::Matrix<double> SoftmaxCrossEntropy::backward(matrix::Matrix<double> dinput, 
-	    matrix::Matrix<double> y_true) {
+matrix::Matrix<double> SoftmaxCrossEntropy::backward(matrix::Matrix<double>& dinput, 
+	    matrix::Matrix<double>& y_true) {
     // Expects y_true to be one hot encoded
     matrix::Matrix<int> converted = matrix::argmax(y_true);
     for (int i = 0; i < dinput.rows; i++) {
