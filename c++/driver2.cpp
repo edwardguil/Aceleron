@@ -3,9 +3,12 @@
 #include "layers.h"
 #include "metrics.h"
 #include "optimizers.h"
-#include "data/data1000.h"
+#include "data/data.h"
 
 using namespace matrix;
+
+void handle_input(Matrix<double>& x_train, Matrix<double>& y_train, 
+		Matrix<double>& x_test, Matrix<double>& y_test, int N);
 
 int main(int argc, char *argv[]) {
 	int N = 100;
@@ -18,16 +21,12 @@ int main(int argc, char *argv[]) {
 
 	std::cout << "N: " << N << std::endl;
 	int train_size = N * 0.8;
-	int test_size = N - train_size;
-    Matrix<double> x_train(train_size, 2);
-    x_train.set_matrix(std::vector<std::vector<double>>(x_train_raw.begin(), x_train_raw.end() - 800 + train_size));
-    Matrix<double> y_train(train_size, 2);
-    y_train.set_matrix(std::vector<std::vector<double>>(y_train_raw.begin(), y_train_raw.end() - 800 + train_size));
 
-    Matrix<double> x_test(test_size, 2);
-    x_test.set_matrix(std::vector<std::vector<double>>(x_test_raw.begin(), x_test_raw.end() - 200 + test_size));
-    Matrix<double> y_test(test_size, 2);
-    y_test.set_matrix(std::vector<std::vector<double>>(y_test_raw.begin(), y_test_raw.end() - 200 + test_size));
+    Matrix<double> x_train(train_size, 2);
+    Matrix<double> y_train(train_size, 2);
+    Matrix<double> x_test(N - train_size, 2);
+    Matrix<double> y_test(N - train_size, 2);
+	handle_input(x_train, y_train, x_test, y_test, N);
 
     Dense layer1(2, 32);
     ReLU layer2;
@@ -35,7 +34,7 @@ int main(int argc, char *argv[]) {
     SoftmaxCrossEntropy layer4;
     optimizer::SGD sgd(1.0, 0.001);
 
-    for (int i = 0; i < 1801; i++) {
+    for (int i = 0; i < 2001; i++) {
 
 	Matrix<double> out1 = layer1.forward(x_train);
 	Matrix<double> out2 = layer2.forward(out1);
@@ -74,4 +73,59 @@ int main(int argc, char *argv[]) {
 
 
     return 1;
+}
+
+void handle_input(Matrix<double>& x_train, Matrix<double>& y_train, 
+		Matrix<double>& x_test, Matrix<double>& y_test, int N) {
+	if (N == 100) {
+		x_train.set_matrix(x_train_raw_100);
+		y_train.set_matrix(y_train_raw_100);
+		x_test.set_matrix(x_test_raw_100);
+		y_test.set_matrix(y_test_raw_100);
+	} else if (N == 200) {
+		x_train.set_matrix(x_train_raw_200);
+		y_train.set_matrix(y_train_raw_200);
+		x_test.set_matrix(x_test_raw_200);
+		y_test.set_matrix(y_test_raw_200);
+	} else if (N == 300) {
+		x_train.set_matrix(x_train_raw_300);
+		y_train.set_matrix(y_train_raw_300);
+		x_test.set_matrix(x_test_raw_300);
+		y_test.set_matrix(y_test_raw_300);
+	} else if (N == 400) {
+		x_train.set_matrix(x_train_raw_400);
+		y_train.set_matrix(y_train_raw_400);
+		x_test.set_matrix(x_test_raw_400);
+		y_test.set_matrix(y_test_raw_400);
+	} else if (N == 500) {
+		x_train.set_matrix(x_train_raw_500);
+		y_train.set_matrix(y_train_raw_500);
+		x_test.set_matrix(x_test_raw_500);
+		y_test.set_matrix(y_test_raw_500);
+	} else if (N == 600) {
+		x_train.set_matrix(x_train_raw_600);
+		y_train.set_matrix(y_train_raw_600);
+		x_test.set_matrix(x_test_raw_600);
+		y_test.set_matrix(y_test_raw_600);
+	} else if (N == 700) {
+		x_train.set_matrix(x_train_raw_700);
+		y_train.set_matrix(y_train_raw_700);
+		x_test.set_matrix(x_test_raw_700);
+		y_test.set_matrix(y_test_raw_700);
+	} else if (N == 800) {
+		x_train.set_matrix(x_train_raw_800);
+		y_train.set_matrix(y_train_raw_800);
+		x_test.set_matrix(x_test_raw_800);
+		y_test.set_matrix(y_test_raw_800);
+	} else if (N == 900) {
+		x_train.set_matrix(x_train_raw_900);
+		y_train.set_matrix(y_train_raw_900);
+		x_test.set_matrix(x_test_raw_900);
+		y_test.set_matrix(y_test_raw_900);
+	} else if (N == 1000) {
+		x_train.set_matrix(x_train_raw_1000);
+		y_train.set_matrix(y_train_raw_1000);
+		x_test.set_matrix(x_test_raw_1000);
+		y_test.set_matrix(y_test_raw_1000);
+	}
 }
