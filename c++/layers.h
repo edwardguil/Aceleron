@@ -5,10 +5,10 @@
 
 class Layer {
 public:
-    virtual matrix::Matrix<double> forward(matrix::Matrix<double>) = 0;
-    virtual matrix::Matrix<double> backward(matrix::Matrix<double>) = 0;
-    virtual matrix::Matrix<double> backward(matrix::Matrix<double>, 
-		matrix::Matrix<double>) = 0;
+    virtual matrix::Matrix<double> forward(matrix::Matrix<double>&) = 0;
+    virtual matrix::Matrix<double> backward(matrix::Matrix<double>&) = 0;
+    virtual matrix::Matrix<double> backward(matrix::Matrix<double>&, 
+		matrix::Matrix<double>&) = 0;
 };
 
 
@@ -24,9 +24,9 @@ public:
 
     void randomize_weights();
 
-    matrix::Matrix<double> forward(matrix::Matrix<double> input);
-    matrix::Matrix<double> backward(matrix::Matrix<double> inputs, 
-		matrix::Matrix<double> dinput);
+    matrix::Matrix<double> forward(matrix::Matrix<double>& input);
+    matrix::Matrix<double> backward(matrix::Matrix<double>& inputs, 
+		matrix::Matrix<double>& dinput);
     matrix::Matrix<double> get_dbiases();
     matrix::Matrix<double> get_dweights();
     matrix::Matrix<double> get_biases();
@@ -40,9 +40,9 @@ class ReLU {
     matrix::Matrix<double> inputs;
 public:
     ReLU(void);
-    matrix::Matrix<double> forward(matrix::Matrix<double> input);
-    matrix::Matrix<double> backward(matrix::Matrix<double> inputs, 
-		matrix::Matrix<double> dinput);
+    matrix::Matrix<double> forward(matrix::Matrix<double>& input);
+    matrix::Matrix<double> backward(matrix::Matrix<double>& inputs, 
+		matrix::Matrix<double>& dinput);
 
 };
 
@@ -50,8 +50,8 @@ class Softmax {
     matrix::Matrix<double> inputs;
 public:
     Softmax(void);
-    matrix::Matrix<double> forward(matrix::Matrix<double> input);
-    matrix::Matrix<double> backward(matrix::Matrix<double> dinput);
+    matrix::Matrix<double> forward(matrix::Matrix<double>& input);
+    matrix::Matrix<double> backward(matrix::Matrix<double>& dinput);
 
 };
 
@@ -61,10 +61,10 @@ class SoftmaxCrossEntropy {
     CategoricalCrossentropy crossEntropy;
 public:
     SoftmaxCrossEntropy(void);
-    matrix::Matrix<double> forward(matrix::Matrix<double> input, 
-	    matrix::Matrix<double> y_true);
-    matrix::Matrix<double> backward(matrix::Matrix<double> dinput, 
-	    matrix::Matrix<double> y_true);
+    matrix::Matrix<double> forward(matrix::Matrix<double>& input, 
+	    matrix::Matrix<double>& y_true);
+    matrix::Matrix<double> backward(matrix::Matrix<double>& dinput, 
+	    matrix::Matrix<double>& y_true);
     double get_loss();
 };
 
