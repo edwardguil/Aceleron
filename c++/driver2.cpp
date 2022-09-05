@@ -3,28 +3,37 @@
 #include "layers.h"
 #include "metrics.h"
 #include "optimizers.h"
-#include "data/data1k.h"
+#include "data/data1000.h"
 
 using namespace matrix;
 
-int main() {
-    
-    Matrix<double> x_train(800, 2);
-    x_train.set_matrix(x_train_raw);
-    Matrix<double> y_train(800, 2);
-    y_train.set_matrix(y_train_raw);
+int main(int argc, char *argv[]) {
+	int N = 100;
+	if (argc > 1) {
+		N = std::stoi(argv[1]);
+		if (N > 1000) {
+			N = 1000;
+		}
+	}
 
+	std::cout << "N: " << N << std::endl;
+	int train_size = N * 0.8;
+	int test_size = N - train_size;
+    Matrix<double> x_train(train_size, 2);
+    x_train.set_matrix(std::vector<std::vector<double>>(x_train_raw.begin(), x_train_raw.end() - 800 + train_size));
+    Matrix<double> y_train(train_size, 2);
+    y_train.set_matrix(std::vector<std::vector<double>>(y_train_raw.begin(), y_train_raw.end() - 800 + train_size));
 
-    Matrix<double> x_test(200, 2);
-    x_test.set_matrix(x_train_raw);
-    Matrix<double> y_test(200, 2);
-    y_test.set_matrix(y_train_raw);
+    Matrix<double> x_test(test_size, 2);
+    x_test.set_matrix(std::vector<std::vector<double>>(x_test_raw.begin(), x_test_raw.end() - 200 + test_size));
+    Matrix<double> y_test(test_size, 2);
+    y_test.set_matrix(std::vector<std::vector<double>>(y_test_raw.begin(), y_test_raw.end() - 200 + test_size));
 
     Dense layer1(2, 32);
     ReLU layer2;
     Dense layer3(32, 2);
     SoftmaxCrossEntropy layer4;
-    optimizer::SGD sgd(1, 0.001);
+    optimizer::SGD sgd(1.0, 0.001);
 
     for (int i = 0; i < 1801; i++) {
 
@@ -58,7 +67,7 @@ int main() {
 	    std::cout << ", loss: " << loss;
 	    std::cout << ", acc_test: " << acctest;
 	    std::cout << ", loss_test: " << losstest;
-	    std::cout << ", lr: " << sgd.get_lr() << std::endl;
+	    std::cout << ", lr: " << std::fixed << sgd.get_lr() << std::endl;
 	}
 
     }
