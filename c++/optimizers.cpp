@@ -7,11 +7,11 @@ namespace optimizer
 
 SGD::SGD(double learning_rate, double decay): learning_rate(learning_rate), 
 	decay(decay) { 
+    iterations = 0;
     current_learning_rate = learning_rate;
 }
 
 void SGD::pre_update() {
-    //self.current_learning_rate = self.learning_rate * (1.0 / (1.0 + self.decay * self.iterations))
     current_learning_rate = learning_rate * (1.0 / (1.0 + decay * iterations));
 }
 

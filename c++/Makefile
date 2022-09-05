@@ -4,7 +4,7 @@ OBJFILES := driver.o layers.o losses.o metrics.o optimizers.o
 OBJFILES2 := driver2.o layers.o losses.o metrics.o optimizers.o
 TARGET := driver
 
-all: $(TARGET) driver2
+all: driver2
 
 driver2 : $(OBJFILES2) matrix.tpp
 	$(CC) $(CFLAGS) -o driver2 $(OBJFILES2)
