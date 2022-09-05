@@ -21,7 +21,7 @@ void Dense::randomize_weights() {
     std::uniform_real_distribution<double> distribution(0.0,1.0);
     for (int i = 0; i < weights.rows; i++) {
 	for (int j = 0; j < weights.cols; j++) {
-	    weights[i][j] = (double) 1.0;//distribution(generator);
+	    weights[i][j] = (double) distribution(generator);
 	}
     }
 }
