@@ -13,17 +13,18 @@ public:
 
 
 class Dense { 
+    // n_inputs x n_neurons matrix storing weights
     matrix::Matrix<double> weights; 
+    // 1 x n_neurons matrix storing biases
     matrix::Matrix<double> biases;
+    // n_inputs x n_neurons matrix storing partial derivative w.r.t. loss
     matrix::Matrix<double> dweights;
+    // 1 x n_neurons matrix storing partial derivative w.t.r loss
     matrix::Matrix<double> dbiases;
 
 public:
     
     Dense(int n_inputs, int n_neurons);
-
-    void randomize_weights();
-
     matrix::Matrix<double> forward(matrix::Matrix<double>& input);
     matrix::Matrix<double> backward(matrix::Matrix<double>& inputs, 
 		matrix::Matrix<double>& dinput);
@@ -31,13 +32,13 @@ public:
     matrix::Matrix<double> get_dweights();
     matrix::Matrix<double> get_biases();
     matrix::Matrix<double> get_weights();
+    void randomize_weights();
     void set_biases(matrix::Matrix<double> new_biases);
     void set_weights(matrix::Matrix<double> new_weights);
 
 };
 
 class ReLU {    
-    matrix::Matrix<double> inputs;
 public:
     ReLU(void);
     matrix::Matrix<double> forward(matrix::Matrix<double>& input);
@@ -47,7 +48,6 @@ public:
 };
 
 class Softmax {
-    matrix::Matrix<double> inputs;
 public:
     Softmax(void);
     matrix::Matrix<double> forward(matrix::Matrix<double>& input);

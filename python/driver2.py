@@ -73,3 +73,4 @@ for epoch in range(1001):
         f'acc_test: {accTest:.3f}, ' +
         f'loss_test: {lossTest:.3f}, ' +
         f'lr: {sgd.current_learning_rate:.3f}')
+git commit -m "Python: Added SGD optimizer, added hardcoded data file, updated layers, added new driver for new data."
