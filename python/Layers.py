@@ -4,8 +4,8 @@ from Losses import *
 class Dense:
 
     def __init__(self, n_inputs, n_neurons):
-        self.weights = np.ones((n_inputs, n_neurons))#np.random.randn(n_inputs, n_neurons)
-        self.biases = np.ones((1, n_neurons))
+        self.weights = np.random.randn(n_inputs, n_neurons)#np.ones((n_inputs, n_neurons))#
+        self.biases = np.zeros((1, n_neurons))
 
     def setWeights(self, weights):
         self.weights = weights
