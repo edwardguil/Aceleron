@@ -1,7 +1,7 @@
 from Layers import *
 from Losses import *
 from Metrics import *
-
+from Optimizers import *
 '''
 W = [[-0.05078057],
  [ 0.64329567],
@@ -28,9 +28,9 @@ y_true = [
 y_true = np.array(y_true)
 X = np.array(X)
 
-layer1 = Dense(3, 3)
+layer1 = Dense(3, 2)
 layer2 = ReLU()
-layer3 = Dense(3, 2)
+layer3 = Dense(2, 2)
 layer4 = SoftmaxCrossEntropy()
 
 print(X)
@@ -75,3 +75,26 @@ back3 = layer2.backward(back3)
 print(back3)
 back1 = layer1.backward(back3)
 print(back1)
+
+
+sgd = SGD()
+print("Start of optimizer test")
+print("        Weights pre:")
+print(layer3.weights)
+print(layer3.dweights)
+print(layer1.weights)
+print(layer1.dweights)
+print("        Biases pre:")
+print(layer3.biases)
+print(layer3.dbiases)
+print(layer1.biases)
+print(layer1.dbiases)
+sgd.pre_update()
+sgd.update(layer3)
+sgd.update(layer1)
+print("        Weights post:")
+print(layer3.weights)
+print(layer1.weights)
+print("        Biases post:")
+print(layer3.biases)
+print(layer1.biases)
