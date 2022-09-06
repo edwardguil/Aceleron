@@ -1,5 +1,5 @@
 CC := g++
-CFLAGS := -Wall -pedantic -g 
+CFLAGS := -Wall -pedantic -g -std=c++11
 OBJFILES := driver.o layers.o losses.o metrics.o optimizers.o
 OBJFILES2 := driver2.o layers.o losses.o metrics.o optimizers.o
 TARGET := driver

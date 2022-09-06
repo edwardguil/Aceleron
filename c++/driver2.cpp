@@ -10,11 +10,30 @@ using namespace matrix;
 void handle_input(Matrix<double>& x_train, Matrix<double>& y_train, 
 		Matrix<double>& x_test, Matrix<double>& y_test, int N);
 
+/* main()
+* -----
+* The main entry point for this program. Creates and runs 
+* an Artificial Neural Network. Architecture constists of: 
+* 			- Dense(2, 16)
+* 			- ReLU()
+* 			- Dense(16, 2)
+* 			- SoftMax()
+* 
+* A single command line argument can be parsed to control the
+* size of the input data to the neural network. Increments
+* of 100 from 100-1000. 
+*
+* @argc: The length of argv
+* @argv: Inputs from the command line
+*
+* Returns: 1 if the program failed, 0 if successful.
+*/
 int main(int argc, char *argv[]) {
+	// Some code to handle command line input
 	int N = 100;
 	if (argc > 1) {
 		N = std::stoi(argv[1]);
-		if (N > 1000) {
+		if (N > 1000 || N < 100) {
 			N = 1000;
 		}
 	}
@@ -22,59 +41,75 @@ int main(int argc, char *argv[]) {
 	std::cout << "N: " << N << std::endl;
 	int train_size = N * 0.8;
 
+	// Define the training and testing Matrixes
     Matrix<double> x_train(train_size, 2);
     Matrix<double> y_train(train_size, 2);
     Matrix<double> x_test(N - train_size, 2);
     Matrix<double> y_test(N - train_size, 2);
+	// This function allocates the data to these matrices
 	handle_input(x_train, y_train, x_test, y_test, N);
 
+	// Construct our network
     Dense layer1(2, 16);
     ReLU layer2;
     Dense layer3(16, 2);
     SoftmaxCrossEntropy layer4;
     optimizer::SGD sgd(1.0, 0.001);
 
+	// Main algorithimic loop
     for (int i = 0; i < 2001; i++) {
 
-	Matrix<double> out1 = layer1.forward(x_train);
-	Matrix<double> out2 = layer2.forward(out1);
-	Matrix<double> out3 = layer3.forward(out2);
-	Matrix<double> out4 = layer4.forward(out3, y_train);
-	double loss = layer4.get_loss();
-	double acc = metric::accuracy(y_train, out4);
+		Matrix<double> out1 = layer1.forward(x_train);
+		Matrix<double> out2 = layer2.forward(out1);
+		Matrix<double> out3 = layer3.forward(out2);
+		Matrix<double> out4 = layer4.forward(out3, y_train);
+		double loss = layer4.get_loss();
+		double acc = metric::accuracy(y_train, out4);
 
-	Matrix<double> back4 = layer4.backward(out4, y_train);
-	Matrix<double> back3 = layer3.backward(out2, back4);
-	Matrix<double> back2 = layer2.backward(out1, back3);
-	Matrix<double> back1 = layer1.backward(x_train, back2);
-	
-	
-	sgd.pre_update();
-	sgd.update(&layer3);
-	sgd.update(&layer1);
-	sgd.post_update();
-	if (i % 100 == 0) {
-	    Matrix<double> outtest1 = layer1.forward(x_test);
-	    Matrix<double> outtest2 = layer2.forward(outtest1);
-	    Matrix<double> outtest3 = layer3.forward(outtest2);
-	    Matrix<double> outtest4 = layer4.forward(outtest3, y_test);
-	    double losstest = layer4.get_loss();
-	    double acctest = metric::accuracy(y_test, outtest4);
+		Matrix<double> back4 = layer4.backward(out4, y_train);
+		Matrix<double> back3 = layer3.backward(out2, back4);
+		Matrix<double> back2 = layer2.backward(out1, back3);
+		Matrix<double> back1 = layer1.backward(x_train, back2);
+		
+		
+		sgd.pre_update();
+		sgd.update(&layer3);
+		sgd.update(&layer1);
+		sgd.post_update();
+		if (i % 100 == 0) {
+			// Let's test the network every 100 iterations
+			Matrix<double> outtest1 = layer1.forward(x_test);
+			Matrix<double> outtest2 = layer2.forward(outtest1);
+			Matrix<double> outtest3 = layer3.forward(outtest2);
+			Matrix<double> outtest4 = layer4.forward(outtest3, y_test);
+			double losstest = layer4.get_loss();
+			double acctest = metric::accuracy(y_test, outtest4);
 
-	    std::cout << "epoch: " << i;
-	    std::cout << ", acc: " << acc;
-	    std::cout << ", loss: " << loss;
-	    std::cout << ", acc_test: " << acctest;
-	    std::cout << ", loss_test: " << losstest;
-	    std::cout << ", lr: " << std::fixed << sgd.get_lr() << std::endl;
-	}
+			std::cout << "epoch: " << i;
+			std::cout << ", acc: " << acc;
+			std::cout << ", loss: " << loss;
+			std::cout << ", acc_test: " << acctest;
+			std::cout << ", loss_test: " << losstest;
+			std::cout << ", lr: " << std::fixed << sgd.get_lr() << std::endl;
+		}
 
     }
 
 
-    return 1;
+    return 0;
 }
 
+/* handle_input()
+* -----
+* Selects which data should be used in training the neural network.
+* Selected conditionally on the size of N.
+*
+* @x_train: The training data samples
+* @y_train: The training data labels
+* @x_test: The test data samples
+* @y_test: The test data labels
+* @N: The amount of data that should be inputted into the Matrix's
+*/
 void handle_input(Matrix<double>& x_train, Matrix<double>& y_train, 
 		Matrix<double>& x_test, Matrix<double>& y_test, int N) {
 	if (N == 100) {
