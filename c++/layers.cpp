@@ -131,6 +131,8 @@ void Dense::set_weights(matrix::Matrix<double> new_weights) {
 
 // ------------- RELU  -------------- //
 
+ReLU::ReLU(void) {}
+
 /* ReLU::forward()
 * -----
 * Passes the input through the layer. Any values
@@ -174,6 +176,8 @@ matrix::Matrix<double> ReLU::backward(matrix::Matrix<double>& inputs,
 }
 
 // ------------- SOFTMAX -------------- //
+
+Softmax::Softmax(void) {}
 
 /* SoftMax::forward()
 * -----
