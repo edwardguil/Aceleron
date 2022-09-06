@@ -22,8 +22,6 @@ public:
 
     std::vector<dtype>& operator[](int i);
 
-    unsigned long size();
-
     void set_matrix(std::vector<std::vector<dtype>> update);
 
     Matrix<dtype> get_matrix();
