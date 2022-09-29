@@ -1,7 +1,7 @@
 # edNet
 A simple Neural Network Framework! 
 ## Overview
-This is a basic Neural Network framework meant to teach myself how popular NN libraries work. Implementations are in Python and C++. 
+This is a basic Neural Network framework meant to teach myself how popular NN libraries work. Implementations are in Python and C++. More features to come!
 
 ## Features:
 - Layers:
