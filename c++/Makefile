@@ -1,22 +1,21 @@
 CC := g++
 CFLAGS := -Wall -pedantic -g -std=c++11
 OBJFILES := driver.o layers.o losses.o metrics.o optimizers.o
-OBJFILES2 := driver2.o layers.o losses.o metrics.o optimizers.o
 TARGET := driver
 
-all: driver2
+all: driver
 
-driver2 : $(OBJFILES2) matrix.tpp
-	$(CC) $(CFLAGS) -o driver2 $(OBJFILES2)
-
-$(TARGET) : $(OBJFILES) matrix.tpp
+driver : $(OBJFILES) matrix.tpp
 	$(CC) $(CFLAGS) -o $(TARGET) $(OBJFILES)
 
-driver2.o : driver2.cpp
-	$(CC) $(CFLAGS) -c driver2.cpp -o driver2.o
+debug : $(OBJFILES) matrix.tpp
+	$(CC) $(CFLAGS) -o debug debug.o $(OBJFILES)
 
 driver.o : driver.cpp
 	$(CC) $(CFLAGS) -c driver.cpp -o driver.o
+
+debug.o : driver.cpp
+	$(CC) $(CFLAGS) -c debug.cpp -o debug.o
 
 layers.o : layers.cpp
 	$(CC) $(CFLAGS) -c layers.cpp -o layers.o
@@ -30,4 +29,4 @@ metrics.o : metrics.cpp
 optimizers.o : optimizers.cpp
 	$(CC) $(CFLAGS) -c optimizers.cpp -o optimizers.o
 clean: 
-	rm $(TARGET) driver2.o driver2 $(OBJFILES)
+	rm $(TARGET) debug debug.o $(OBJFILES)
