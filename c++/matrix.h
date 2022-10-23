@@ -10,7 +10,7 @@ namespace matrix
 template <typename dtype>
 class Matrix {
 
-    std::vector<std::vector<dtype>> matrix;
+    std::vector<dtype> matrix;
 
 public:
     int rows;
@@ -20,9 +20,9 @@ public:
 
     Matrix();
 
-    std::vector<dtype>& operator[](int i);
+    dtype& operator[](int i);
 
-    void set_matrix(std::vector<std::vector<dtype>> update);
+    void set_matrix(std::vector<dtype> update);
 
     Matrix<dtype> get_matrix();
     

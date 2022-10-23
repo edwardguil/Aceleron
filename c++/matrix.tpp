@@ -6,6 +6,7 @@
 #include <cmath>
 #include <type_traits>
 #include "matrix.h"
+
 namespace matrix 
 {
 
@@ -23,8 +24,8 @@ namespace matrix
 * @value: the value to fill the matrix, defaults to 0.
 */
 template <typename dtype>
-Matrix<dtype>::Matrix(int rows, int cols, dtype value): matrix(rows, 
-	std::vector<dtype>(cols, value)), rows(rows), cols(cols) {
+Matrix<dtype>::Matrix(int rows, int cols, dtype value): matrix(rows * cols, value), 
+	rows(rows), cols(cols) {
 }
 
 /* Matrix::operator[]()
@@ -36,8 +37,8 @@ Matrix<dtype>::Matrix(int rows, int cols, dtype value): matrix(rows,
 * Returns: inner vector of the matrix at index i.
 */
 template <typename dtype>
-std::vector<dtype>& Matrix<dtype>::operator[](int i) {
-    return matrix[i];
+dtype& Matrix<dtype>::operator[](int i) {
+	return matrix[i];
 }
 
 /* Matrix<dtype>::set_matrix()
@@ -49,7 +50,7 @@ std::vector<dtype>& Matrix<dtype>::operator[](int i) {
 * @update: the vector<vector<>> to overide the underlying one.
 */
 template <typename dtype>
-void Matrix<dtype>::set_matrix(std::vector<std::vector<dtype>> update) {
+void Matrix<dtype>::set_matrix(std::vector<dtype> update) {
     matrix = update;
 }
 
@@ -89,7 +90,7 @@ void print(Matrix<dtype> matrix) {
 	std::cout << "[";
 		for (int j = 0; j < matrix.cols; j++) {
 			temp = j + 1 == matrix.cols ? (char*) "" : (char*) ", ";
-			std::cout << matrix[i][j] << temp;
+			std::cout << matrix[i*matrix.cols+j] << temp;
 		}
 		temp = i + 1 == matrix.rows ? (char*) "" : (char*) ",\n ";
 		std::cout << "]" << temp;
@@ -118,7 +119,7 @@ Matrix<dtype> dot(Matrix<dtype> a, Matrix<dtype> b) {
 				// For each feature in that row
 				for (int k = 0; k < b.rows; k++) {
 					// For each neuron
-					out[i][j] +=  a[i][k] * b[k][j];
+					out[i*out.cols + j] +=  a[i*a.cols + k] * b[k*b.cols + j];
 				}
 		}
     }
@@ -143,8 +144,8 @@ Matrix<dtype> max(Matrix<dtype> a) {
     Matrix<dtype> maxValues(a.rows, 1, (dtype) -INT_MAX); 
     for (int i = 0; i < a.rows; i++) {
 		for (int j = 0; j < a.cols; j++) {
-			if (a[i][j] > maxValues[i][0]) {
-				maxValues[i][0] = a[i][j];
+			if (a[i*a.cols + j] > maxValues[i]) {
+				maxValues[i] = a[i*a.cols + j];
 			}
 		}
     }
@@ -176,7 +177,7 @@ Matrix<dtype> sum(Matrix<dtype> a, int axis, bool keepdims) {
 			Matrix<dtype> out(a.rows, 1); 
 			for (int i = 0; i < a.rows; i++) {
 				for (int j = 0; j < a.cols; j++) {
-					out[i][0] += a[i][j];
+					out[i] += a[i*a.cols + j];
 				}
 			}
 			return out;
@@ -184,7 +185,7 @@ Matrix<dtype> sum(Matrix<dtype> a, int axis, bool keepdims) {
 			Matrix<dtype> out(1, a.cols);
 			for (int i = 0; i < a.rows; i++) {
 				for (int j = 0; j < a.cols; j++) {
-					out[0][j] += a[i][j];
+					out[j] += a[i*a.cols + j];
 				}
 			}
 			return out;
@@ -193,7 +194,7 @@ Matrix<dtype> sum(Matrix<dtype> a, int axis, bool keepdims) {
 		Matrix<dtype> out(1, 1);
 		for (int i = 0; i < a.rows; i++) {
 			for (int j = 0; j < a.cols; j++) {
-				out[0][0] += a[i][j];
+				out[0] += a[i*a.cols + j];
 			}
 		}
 		return out;
@@ -215,7 +216,7 @@ Matrix<dtype> transpose(Matrix<dtype> a) {
     Matrix<dtype> out(a.cols, a.rows);
     for (int i = 0; i < a.rows; i++) {
 		for (int j = 0; j < a.cols; j++) {
-			out[j][i] = a[i][j];
+			out[j*out.cols + i] = a[i*a.cols + j];
 		}
     }
     return out;
@@ -227,9 +228,9 @@ Matrix<dtype> transpose(Matrix<dtype> a) {
 * two elements. Matrices can be of various shapes. 
 * Computes the following: 
 * 	if (a.rows == b.rows && a.cols == b.cols) -> element wise.
-* 	if (a.cols == b.cols && b.rows == 1) -> a[i][j] x a[0][j]
-*   if (a.rows == b.rows && b.cols == 1) -> a[i][j] x b[i][0]
-*   if (b.rows == 1 && b.cols == 1) -> a[i][j] x b[0][0]
+* 	if (a.cols == b.cols && b.rows == 1) -> a[i*a.cols + j] x a[j]
+*   if (a.rows == b.rows && b.cols == 1) -> a[i*a.cols + j] x b[i]
+*   if (b.rows == 1 && b.cols == 1) -> a[i*a.cols + j] x b[0]
 *	for i in a.rows and j in a.cols
 *
 * @a: the first matrix to be used in the calculation
@@ -246,26 +247,26 @@ Matrix<dtype> matrix_general(Matrix<dtype> a, Matrix<dtype> b, Operator op) {
     if (a.rows == b.rows && a.cols == b.cols) {
 		for (int i = 0; i < a.rows; i++) {
 			for (int j = 0; j < a.cols; j++) {
-				out[i][j] = op(a[i][j], b[i][j]);
+				out[i*out.cols + j] = op(a[i*a.cols + j], b[i*a.cols + j]);
 			}
 		}
     }
     else if (a.cols == b.cols && b.rows == 1) {
 		for (int i = 0; i < a.rows; i++) {
 				for (int j = 0; j < a.cols; j++) {
-					out[i][j] = op(a[i][j], b[0][j]);
+					out[i*out.cols + j] = op(a[i*a.cols + j], b[j]);
 				}
 		}
     } else if (a.rows == b.rows && b.cols == 1) {
 		for (int i = 0; i < a.rows; i++) {
 				for (int j = 0; j < a.cols; j++) {
-					out[i][j] = op(a[i][j], b[i][0]);
+					out[i*out.cols + j] = op(a[i*a.cols + j], b[i]);
 				}
 		}
     } else if (b.rows == 1 && b.cols == 1) {
 		for (int i = 0; i < a.rows; i++) {
 			for (int j = 0; j < a.cols; j++) {
-				out[i][j] = op(a[i][j], b[0][0]);
+				out[i*out.cols + j] = op(a[i*a.cols + j], b[0]);
 			}
 		}
     } else {
@@ -376,7 +377,7 @@ Matrix<dtype> exp(Matrix<dtype> a) {
     Matrix<dtype> out(a.rows, a.cols);
     for (int i = 0; i < a.rows; i++) {
 		for (int j = 0; j < a.cols; j++) {
-			out[i][j] = std::exp(a[i][j]);
+			out[i*out.cols + j] = std::exp(a[i*a.cols + j]);
 		}
     }
     return out;
@@ -396,7 +397,7 @@ Matrix<dtype> log(Matrix<dtype> a) {
     Matrix<dtype> out(a.rows, a.cols);
     for (int i = 0; i < a.rows; i++) {
 		for (int j = 0; j < a.cols; j++) {
-			out[i][j] = std::log(a[i][j]);
+			out[i*out.cols + j] = std::log(a[i*a.cols + j]);
 		}
     }
     return out;
@@ -416,7 +417,7 @@ Matrix<dtype> mul_const(Matrix<dtype> a, dtype b) {
     Matrix<dtype> out(a.rows, a.cols);
     for (int i = 0; i < a.rows; i++) {
 		for (int j = 0; j < a.cols; j++) {
-			out[i][j] = a[i][j] * (float) b;
+			out[i*out.cols + j] = a[i*a.cols + j] * (float) b;
 		}
     }
     return out;
@@ -437,10 +438,10 @@ Matrix<int> argmax(Matrix<dtype> a) {
     Matrix<int> out(a.rows, 1);
     dtype max;
     for (int i = 0; i < a.rows; i++) {
-		max = a[i][0];
+		max = a[i*a.cols];
 		for (int  j = 1; j < a.cols; j++) {
-			if (max < a[i][j]) {
-				out[i][0] = j;
+			if (max < a[i*a.cols + j]) {
+				out[i] = j;
 			}
 		}
     }

@@ -32,7 +32,7 @@ void Dense::randomize_weights() {
     std::uniform_real_distribution<double> distribution(0.0,1.0);
     for (int i = 0; i < weights.rows; i++) {
         for (int j = 0; j < weights.cols; j++) {
-            weights[i][j] = (double) distribution(generator);
+            weights[i*weights.cols + j] = (double) distribution(generator);
         }
     }
 }
@@ -144,8 +144,8 @@ ReLU::ReLU(void) {}
 matrix::Matrix<double> ReLU::forward(matrix::Matrix<double>& input) {
     for (int i = 0; i < input.rows; i++) {
         for (int j = 0; j < input.cols; j++) {
-            if (input[i][j] < 0) {
-            input[i][j] = 0;
+            if (input[i*input.cols + j] < 0) {
+            input[i*input.cols + j] = 0;
             }
         }
     }
@@ -167,8 +167,8 @@ matrix::Matrix<double> ReLU::backward(matrix::Matrix<double>& inputs,
 	    matrix::Matrix<double>& dinput) {
     for (int i = 0; i < dinput.rows; i++) {
         for (int j = 0; j < dinput.cols; j++) {
-            if (inputs[i][j] <= 0) {
-            dinput[i][j] = 0;
+            if (inputs[i*inputs.cols + j] <= 0) {
+            dinput[i*dinput.cols + j] = 0;
             }
         }
     }
@@ -253,7 +253,7 @@ matrix::Matrix<double> SoftmaxCrossEntropy::backward(matrix::Matrix<double>& din
     // Expects y_true to be one hot encoded
     matrix::Matrix<int> converted = matrix::argmax(y_true);
     for (int i = 0; i < dinput.rows; i++) {
-        dinput[i][converted[i][0]] -= 1;
+        dinput[i*dinput.cols + converted[i]] -= 1;
     }
     matrix::Matrix<double> temp(1, 1, dinput.rows);
     return matrix::division(dinput, temp);

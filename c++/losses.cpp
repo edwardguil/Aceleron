@@ -13,7 +13,7 @@
 */
 double Loss::calculateLoss(matrix::Matrix<double> y_true, 
 	    matrix::Matrix<double> y_pred) {
-    return matrix::sum(loss(y_true, y_pred), 1, false)[0][0] / y_true.rows; 
+    return matrix::sum(loss(y_true, y_pred), 1, false)[0] / y_true.rows; 
 }
 
 /* CategoricalCrossEntropy::loss()
