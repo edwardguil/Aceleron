@@ -2,31 +2,28 @@
 #define MATRIX_H
 
 #include <vector>
-
-
-
 namespace matrix 
 {
-template <typename dtype>
+template <typename dtype, typename vtype = std::vector<dtype>>
 class Matrix {
-
-    std::vector<dtype> matrix;
-
+    vtype matrix;
 public:
     int rows;
     int cols;
 
-    Matrix(int rows, int cols, dtype value = 0); 
-
+    Matrix(int rows, int cols, dtype value = 0);
     Matrix();
 
     dtype& operator[](int i);
 
-    void set_matrix(std::vector<dtype> update);
+    void set_matrix(vtype update);
 
-    Matrix<dtype> get_matrix();
+    int size();
+
+    vtype get_matrix();
+    void get_matrix(vtype);
     
-    Matrix<dtype> copy();
+    Matrix<dtype, vtype> copy();
 };
 
 template <typename dtype>
@@ -73,6 +70,6 @@ Matrix<int> argmax(Matrix<dtype> a);
 
 }
 
-#include "matrix.tpp"
+#include "matrix.cu"
 
 #endif

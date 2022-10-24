@@ -37,6 +37,7 @@ int main(int argc, char *argv[]) {
 			N = 1000;
 		}
 	}
+	Matrix<double, double*> testYes(N, N);
 
 	std::cout << "N: " << N << std::endl;
 	int train_size = N * 0.8;

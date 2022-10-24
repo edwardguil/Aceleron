@@ -5,62 +5,70 @@
 #include <climits>
 #include <cmath>
 #include <type_traits>
-#include "matrix.h"
 
-namespace matrix 
-{
+namespace matrix {
 
 /* Matrix<dtype>::Matrix()
 * -----
 * Initiliases a Matrix object with the respective shape. 
 * If value is passed, also fills the matrix with the passed value.
 * 
-* Matrix is simply a wrapper for a std::vector<std::vector<dtype>>.
-* It was added to: increase the the performance of std::vector[].size(), 
-* that is, finding the size of the inner vector; and readability.
+* Matrix is simply a wrapper for a datatype, which is generally
+* std::vector<dtype>.
+* It was added for readability, and convience to limit the passing 
+* of rows, cols through every function that required it.
 *
 * @rows: the number of rows the matrix should have
 * @cols: the number of cols the matrix should have
 * @value: the value to fill the matrix, defaults to 0.
 */
-template <typename dtype>
-Matrix<dtype>::Matrix(int rows, int cols, dtype value): matrix(rows * cols, value), 
-	rows(rows), cols(cols) {
+template <typename dtype, typename vtype>
+Matrix<dtype, vtype>::Matrix(int rows, int cols, dtype value): matrix(rows*cols, value), 
+		rows(rows), cols(cols) {
 }
 
 /* Matrix::operator[]()
 * -----
 * Returns a inner vector of the matrix, at the specified index
 *
-* @i: index of the inner vector
+* @i: index of the value
 *
-* Returns: inner vector of the matrix at index i.
+* Returns: address of the value in the vector<dtype> at index i.
 */
-template <typename dtype>
-dtype& Matrix<dtype>::operator[](int i) {
+template <typename dtype, typename vtype>
+dtype& Matrix<dtype, vtype>::operator[](int i) {
 	return matrix[i];
 }
 
 /* Matrix<dtype>::set_matrix()
 * -----
-* Overides the underlying std::vector<std::vector<dtype>> with the 
-* passed std::vector<std::vector<dtype>>. Function should only
+* Overides the underlying std::vector<dtype> with the 
+* passed std::vector<dtype>. Function should only
 * be used for loading data in.
 * 
-* @update: the vector<vector<>> to overide the underlying one.
+* @update: the std::vector<dtype> to overide the underlying one.
 */
-template <typename dtype>
-void Matrix<dtype>::set_matrix(std::vector<dtype> update) {
+template <typename dtype, typename vtype>
+void Matrix<dtype, vtype>::set_matrix(vtype update) {
     matrix = update;
 }
 
 /* Matrix<dtype>::get_matrix()
 * -----
-* Getter for the underlying std::vector<std::vector<dtype>>
+* Getter for the underlying std::vector<dtype>
 */
-template <typename dtype>
-Matrix<dtype> Matrix<dtype>::get_matrix() {
+template <typename dtype, typename vtype>
+vtype Matrix<dtype, vtype>::get_matrix() {
     return matrix;
+}
+
+/* Matrix<dtype>::size()
+* -----
+* Returns the size of the underlying data structure (rows * cols)
+*/
+template <typename dtype, typename vtype>
+int Matrix<dtype, vtype>::size() {
+    return cols * rows;
 }
 
 /* Matrix<dtype>::copy()
@@ -69,12 +77,71 @@ Matrix<dtype> Matrix<dtype>::get_matrix() {
 * 
 * Returns: a deep copy of this matrix object.
 */
-template <typename dtype>
-Matrix<dtype> Matrix<dtype>::copy() {
+template <typename dtype, typename vtype>
+Matrix<dtype, vtype> Matrix<dtype, vtype>::copy() {
     Matrix<dtype> out(rows, cols);
     out.set_matrix(matrix);
     return out;
 }
+
+/* Matrix<double, double*>::Matrix()
+* -----
+* Initiliases a Matrix object with the respective shape. 
+* 
+* Matrix<double, double*> is a wrapper for a double* stored
+* on a CUDA device. This is for convience to limit the passing 
+* of rows, cols through every function that required it.
+*
+* @rows: the number of rows the matrix should have
+* @cols: the number of cols the matrix should have
+* @value: the value to fill the matrix, defaults to 0.
+*/
+template<>
+inline Matrix<double, double*>::Matrix(int rows, int cols, double value): 
+		rows(rows), cols(cols) {
+	cudaMalloc(&matrix, sizeof(double) * (rows * cols));
+}
+
+/* Matrix<dtype>::set_matrix()
+* -----
+* Copies the update array to the device via cudaMemCpy. The
+* num of elements copied is rows * cols of this matrix.
+* 
+* @update: the array to copy to the device.
+*/
+template <>
+inline void Matrix<double, double*>::set_matrix(double* update) {
+    cudaMemcpy(matrix, update, sizeof(double) * (rows * cols), cudaMemcpyHostToDevice);
+}
+
+/* Matrix<dtype>::get_matrix()
+* -----
+* Returns the array from device to host. Copies array from
+* underlying matrix, to passed array dest. 
+* Caller is responsible for memory management.
+*
+* @dest: the array where the underlying array from device
+* 	will be copied too.
+*/
+template <>
+inline void Matrix<double, double*>::get_matrix(double* dest) {
+    cudaMemcpy(dest, matrix, sizeof(double) * (rows * cols), cudaMemcpyDeviceToHost);
+}
+
+/* Matrix<dtype>::copy()
+// 
+* Deep copies this matrix object. 
+* 
+* Returns: a deep copy of this matrix object.
+*/
+template<>
+inline Matrix<double, double*> Matrix<double, double*>::copy() {
+    Matrix<double, double*> out(rows, cols);
+    out.set_matrix(matrix);
+    return out;
+}
+
+
 
 /* print()
 * -----
@@ -97,6 +164,7 @@ void print(Matrix<dtype> matrix) {
     }
     std::cout << "]\n";
 }
+
 /* dot()
 * -----
 * Computes the dot product between two matrices. That is a ⋅ b. 
@@ -125,6 +193,7 @@ Matrix<dtype> dot(Matrix<dtype> a, Matrix<dtype> b) {
     }
     return out;
 }
+
 
 /* max()
 * -----
@@ -199,7 +268,7 @@ Matrix<dtype> sum(Matrix<dtype> a, int axis, bool keepdims) {
 		}
 		return out;
     }
-    return a;
+    //return a;
 }
 /* transpose()
 * -----
