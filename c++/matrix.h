@@ -21,9 +21,9 @@ public:
     int size();
 
     vtype get_matrix();
-    void get_matrix(vtype);
+    void get_matrix(Matrix<dtype>);
     
-    Matrix<dtype, vtype> copy();
+    Matrix<dtype> copy();
 };
 
 template <typename dtype>

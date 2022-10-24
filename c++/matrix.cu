@@ -4,7 +4,8 @@
 #include <vector>
 #include <climits>
 #include <cmath>
-#include <type_traits>
+#include "cuda.h"
+//#include <type_traits>
 
 namespace matrix {
 
@@ -78,7 +79,7 @@ int Matrix<dtype, vtype>::size() {
 * Returns: a deep copy of this matrix object.
 */
 template <typename dtype, typename vtype>
-Matrix<dtype, vtype> Matrix<dtype, vtype>::copy() {
+Matrix<dtype> Matrix<dtype, vtype>::copy() {
     Matrix<dtype> out(rows, cols);
     out.set_matrix(matrix);
     return out;
@@ -99,7 +100,7 @@ Matrix<dtype, vtype> Matrix<dtype, vtype>::copy() {
 template<>
 inline Matrix<double, double*>::Matrix(int rows, int cols, double value): 
 		rows(rows), cols(cols) {
-	cudaMalloc(&matrix, sizeof(double) * (rows * cols));
+	cuda::checkError(cudaMalloc(&matrix, sizeof(double) * (rows * cols)));
 }
 
 /* Matrix<dtype>::set_matrix()
@@ -111,7 +112,7 @@ inline Matrix<double, double*>::Matrix(int rows, int cols, double value):
 */
 template <>
 inline void Matrix<double, double*>::set_matrix(double* update) {
-    cudaMemcpy(matrix, update, sizeof(double) * (rows * cols), cudaMemcpyHostToDevice);
+	cuda::checkError(cudaMemcpy(matrix, update, sizeof(double) * (rows * cols), cudaMemcpyHostToDevice));
 }
 
 /* Matrix<dtype>::get_matrix()
@@ -124,8 +125,8 @@ inline void Matrix<double, double*>::set_matrix(double* update) {
 * 	will be copied too.
 */
 template <>
-inline void Matrix<double, double*>::get_matrix(double* dest) {
-    cudaMemcpy(dest, matrix, sizeof(double) * (rows * cols), cudaMemcpyDeviceToHost);
+inline void Matrix<double, double*>::get_matrix(Matrix<double> dest) {
+    cuda::checkError(cudaMemcpy(&(dest[0]), matrix, sizeof(double) * (rows * cols), cudaMemcpyDeviceToHost));
 }
 
 /* Matrix<dtype>::copy()
@@ -134,12 +135,12 @@ inline void Matrix<double, double*>::get_matrix(double* dest) {
 * 
 * Returns: a deep copy of this matrix object.
 */
-template<>
-inline Matrix<double, double*> Matrix<double, double*>::copy() {
-    Matrix<double, double*> out(rows, cols);
-    out.set_matrix(matrix);
-    return out;
-}
+// template<>
+// inline Matrix<double, double*> Matrix<double, double*>::copy() {
+//     Matrix<double, double*> out(rows, cols);
+//     out.set_matrix(matrix);
+//     return out;
+// }
 
 
 
@@ -163,6 +164,30 @@ void print(Matrix<dtype> matrix) {
 		std::cout << "]" << temp;
     }
     std::cout << "]\n";
+}
+
+/* print()
+* -----
+* Prints out the parsed matrix to stdout.
+*
+* @matrix: the matrix to be printed
+*/
+inline void print(Matrix<double, double*> matrix) {
+	double* data = (double*) malloc(sizeof(double) * matrix.size());
+	cuda::checkError(cudaMemcpy(data, matrix.get_matrix(), sizeof(double) * matrix.size(), cudaMemcpyDeviceToHost));
+    char* temp;
+    std::cout << "[";
+    for(int i = 0; i < matrix.rows; i++) {
+	std::cout << "[";
+		for (int j = 0; j < matrix.cols; j++) {
+			temp = j + 1 == matrix.cols ? (char*) "" : (char*) ", ";
+			std::cout << data[i*matrix.cols+j] << temp;
+		}
+		temp = i + 1 == matrix.rows ? (char*) "" : (char*) ",\n ";
+		std::cout << "]" << temp;
+    }
+    std::cout << "]\n";
+	free(data);
 }
 
 /* dot()
@@ -193,6 +218,30 @@ Matrix<dtype> dot(Matrix<dtype> a, Matrix<dtype> b) {
     }
     return out;
 }
+
+/* dot()
+* -----
+* Computes the dot product between two matrices. That is a ⋅ b. 
+* a.cols must equal b.rows. 
+*
+* @a: the first matrix to be used in the calculation
+* @b: the second matrix to be used in the calculation
+*
+* Returns: the matrix containing the dot product of a & b.	
+* 		Will be of shape (a.rows, b.cols)
+*/
+template <typename dtype>
+Matrix<dtype, double*> dot(Matrix<dtype, double*> a, Matrix<dtype, double*> b) {
+    // a should be inputs
+    // b should be weights
+    Matrix<dtype, double*> out(a.rows, b.cols);
+	int threads = 32;
+	dim3 block(threads, threads);
+    dim3 grid((a.rows+threads-1)/threads, (b.cols+threads-1)/threads);
+	cuda::dot<<<grid, block>>>(a.rows, b.cols, b.rows, a.get_matrix(), b.get_matrix(), out.get_matrix());
+	return out;
+}
+
 
 
 /* max()

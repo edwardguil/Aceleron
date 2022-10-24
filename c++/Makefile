@@ -1,8 +1,8 @@
 CC := g++
 NVCC := nvcc
 CFLAGS := -Wall -pedantic -g -std=c++11
-NVFLAGS = --gpu-architecture=sm_35 -Wno-deprecated-gpu-targets -pg
-OBJFILES := layers.o losses.o metrics.o optimizers.o
+NVFLAGS = --gpu-architecture=sm_35 -Wno-deprecated-gpu-targets -pg -g
+OBJFILES := layers.o losses.o metrics.o optimizers.o cuda.o
 OBJFILESDRIVER := driver.o $(OBJFILES)
 OBJFILESDEBUG :=  debug.o $(OBJFILES)
 

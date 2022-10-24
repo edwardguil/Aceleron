@@ -13,8 +13,6 @@ public:
 
 
 class Dense { 
-    // n_inputs x n_neurons matrix storing weights
-    matrix::Matrix<double> weights; 
     // 1 x n_neurons matrix storing biases
     matrix::Matrix<double> biases;
     // n_inputs x n_neurons matrix storing partial derivative w.r.t. loss
@@ -23,6 +21,8 @@ class Dense {
     matrix::Matrix<double> dbiases;
 
 public:
+    // n_inputs x n_neurons matrix storing weights
+    matrix::Matrix<double> weights; 
     
     Dense(int n_inputs, int n_neurons);
     matrix::Matrix<double> forward(matrix::Matrix<double>& input);

@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
 			N = 1000;
 		}
 	}
-	Matrix<double, double*> testYes(N, N);
+
 
 	std::cout << "N: " << N << std::endl;
 	int train_size = N * 0.8;
@@ -50,12 +50,35 @@ int main(int argc, char *argv[]) {
 	// This function allocates the data to these matrices
 	handle_input(x_train, y_train, x_test, y_test, N);
 
+
+
 	// Construct our network
     Dense layer1(2, 16);
     ReLU layer2;
     Dense layer3(16, 2);
     SoftmaxCrossEntropy layer4;
     optimizer::SGD sgd(1.0, 0.001);
+
+
+	// // START Test code -----------------
+	// Dense layer1(2, 4);
+	
+	// // Create cuda matrices
+	// Matrix<double, double*> a(train_size, 2);
+	// Matrix<double, double*> b(2, 4);
+	// a.set_matrix((double*) &(x_train[0]));
+	// b.set_matrix((double*) &(layer1.weights[0]));
+
+	// std::cout << "Cuda Matrix dot(a,b)" << std::endl;
+	// Matrix<double, double*> cuda_out = dot(a, b);
+	// print(cuda_out);
+	// std::cout << "Serial Matrix dot(a,b)" << std::endl;
+	// Matrix<double> serial_out = dot(x_train, layer1.weights);
+	// print(serial_out);
+
+	// return 0
+	// // END Test code -----------------------
+
 
 	// Main algorithimic loop
     for (int i = 0; i < 2001; i++) {
