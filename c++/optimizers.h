@@ -4,7 +4,7 @@
 #include "layers.h"
 namespace optimizer
 {
-template<typename dtype = double, typename vtype = std::vector<double>>
+template<typename dtype, typename vtype>
 class SGD {
     int iterations;
     double learning_rate;

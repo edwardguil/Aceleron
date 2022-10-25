@@ -38,6 +38,24 @@ void Dense<dtype, vtype>::randomize_weights() {
     }
 }
 
+/* Dense::randomize_weights()
+* -----
+* Randomizes the layers weights using a uniform distribution.
+*/
+template<>
+void Dense<double, double*>::randomize_weights() {
+    std::default_random_engine generator;
+    std::uniform_real_distribution<double> distribution(0.0,1.0);
+    std::vector<double> randomized(weights.rows * weights.cols);
+    for (int i = 0; i < weights.rows; i++) {
+        for (int j = 0; j < weights.cols; j++) {
+            randomized[i*weights.cols + j] = (double) distribution(generator);
+        }
+    }
+    weights.set_matrix(&(randomized[0]));
+}
+
+
 /* Dense::forward()
 * -----
 * Passes the input through the layer. Computes the dot product
@@ -162,6 +180,20 @@ matrix::Matrix<dtype, vtype> ReLU<dtype, vtype>::forward(matrix::Matrix<dtype, v
     return input;
 }
 
+/* ReLU::forward()
+* -----
+* Passes the input through the layer. Any values
+* less than zero in the parsed input will be set to zero. 
+* @input: the input to be passed through the layer 
+
+* Returns: the resulting matrix after performing operations.
+*/
+template<>
+matrix::Matrix<double, double*> ReLU<double, double*>::forward(matrix::Matrix<double, double*>& input) {
+    matrix::relu_fwd(input);
+    return input;
+}
+
 /* ReLU::backward()
 * -----
 * Computes the partial derivate w.r.t the relus output, utilising 
@@ -205,7 +237,7 @@ template<typename dtype, typename vtype>
 matrix::Matrix<dtype, vtype> Softmax<dtype, vtype>::forward(matrix::Matrix<dtype, vtype>& input) {
     matrix::Matrix<dtype, vtype> temp = matrix::exp(matrix::subtract(input, 
 		matrix::max(input)));
-    return matrix::division(temp, matrix::sum(temp));
+    return matrix::division(temp, matrix::sum(temp, 1, true));
 }
 
 /* SoftMax::backward()

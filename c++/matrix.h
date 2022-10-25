@@ -1,7 +1,8 @@
 #ifndef MATRIX_H
 #define MATRIX_H
-
 #include <vector>
+#include "cuda.h"
+
 namespace matrix 
 {
 template <typename dtype, typename vtype = std::vector<dtype, std::allocator<dtype>>>
@@ -67,6 +68,9 @@ Matrix<dtype> log(Matrix<dtype> a);
 
 template <typename dtype>
 Matrix<int> argmax(Matrix<dtype> a);
+
+template <typename dtype>
+Matrix<dtype> relu_fwd(Matrix<dtype> a);
 
 }
 

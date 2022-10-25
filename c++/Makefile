@@ -2,31 +2,25 @@ CC := g++
 NVCC := nvcc
 CFLAGS := -Wall -pedantic -g -std=c++11
 NVFLAGS = --gpu-architecture=sm_35 -Wno-deprecated-gpu-targets -pg -g
-OBJFILES := layers.o losses.o metrics.o optimizers.o cuda.o
-DEPEND := driver.cu layers.cu losses.cu metrics.cu optimizers.cu matrix.cu cuda.cu 
-OBJFILESDRIVER := driver.o $(OBJFILES)
-OBJFILESDEBUG :=  debug.o $(OBJFILES)
+DEPEND := layers.cu losses.cu metrics.cu optimizers.cu matrix.cu cuda.o
+OBJFILES := cuda.o
 
-all: driver
+all: driverParrallel
 
 driver : driver.o
-	$(NVCC) $(NVFLAGS) driver.o -o $@
+	$(NVCC) $(NVFLAGS) $(OBJFILES) driver.o -o $@
 
-driver.o: $(DEPEND)
+driver.o: driver.cu  $(DEPEND)
 	$(NVCC) $(NVFLAGS) -c -o driver.o driver.cu
 
+driverParrallel : driverParrallel.o
+	$(NVCC) $(NVFLAGS) $(OBJFILES) driverParrallel.o -o driver
 
-# driver : $(DEPEND) \
-	$(NVCC) $(NVFLAGS) $(DEPEND) -o $@ \
-\
-debug : $(OBJFILESDEBUG) matrix.cu \
-	$(CC) $(CFLAGS) $(OBJFILESDEBUG) -o $@ \
-\
-%.o : %.cpp \
-	$(CC) $(CFLAGS) -c $< -o $@ \
-\
-%.o : %.cu \
-	$(NVCC) $(NVFLAGS) -c $< -o $@ \
+driverParrallel.o: driverParrallel.cu $(DEPEND)
+	$(NVCC) $(NVFLAGS) -c -o driverParrallel.o driverParrallel.cu
+
+%.o : %.cu 
+	$(NVCC) $(NVFLAGS) -c $< -o $@ 
 
 clean: 
-	rm driver driver.o debug debug.o $(OBJFILES)
+	rm driver driver.o driverParrallel driverParrallel.o  debug debug.o 
