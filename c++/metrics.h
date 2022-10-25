@@ -4,7 +4,10 @@
 
 namespace metric
 {
-    double accuracy(matrix::Matrix<double> y_true, matrix::Matrix<double> y_pred);
+    template<typename dtype = double, typename vtype = std::vector<double>>
+    double accuracy(matrix::Matrix<dtype, vtype> y_true, matrix::Matrix<dtype, vtype> y_pred);
 }
+
+#include "metrics.cu"
 
 #endif

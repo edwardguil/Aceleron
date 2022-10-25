@@ -5,6 +5,42 @@
 #include "optimizers.h"
 #include "data/data.h"
 
+#include <type_traits>
+#include <typeinfo>
+#ifndef _MSC_VER
+#include <cxxabi.h>
+#endif
+#include <memory>
+#include <string>
+#include <cstdlib>
+
+template <class T>
+std::string
+type_name()
+{
+    typedef typename std::remove_reference<T>::type TR;
+    std::unique_ptr<char, void(*)(void*)> own
+           (
+#ifndef _MSC_VER
+                abi::__cxa_demangle(typeid(TR).name(), nullptr,
+                                           nullptr, nullptr),
+#else
+                nullptr,
+#endif
+                std::free
+           );
+    std::string r = own != nullptr ? own.get() : typeid(TR).name();
+    if (std::is_const<TR>::value)
+        r += " const";
+    if (std::is_volatile<TR>::value)
+        r += " volatile";
+    if (std::is_lvalue_reference<T>::value)
+        r += "&";
+    else if (std::is_rvalue_reference<T>::value)
+        r += "&&";
+    return r;
+}
+
 using namespace matrix;
 
 void handle_input(Matrix<double>& x_train, Matrix<double>& y_train, 
@@ -47,19 +83,22 @@ int main(int argc, char *argv[]) {
     Matrix<double> y_train(train_size, 2);
     Matrix<double> x_test(N - train_size, 2);
     Matrix<double> y_test(N - train_size, 2);
+	std::cout << "decltype(i) is " << type_name<decltype(x_train)>() << '\n';
 	// This function allocates the data to these matrices
 	handle_input(x_train, y_train, x_test, y_test, N);
 
 
 
+
+
 	// Construct our network
-    Dense layer1(2, 16);
-    ReLU layer2;
-    Dense layer3(16, 2);
-    SoftmaxCrossEntropy layer4;
-    optimizer::SGD sgd(1.0, 0.001);
+    Dense<> layer1(2, 16);
+    ReLU<> layer2;
+    Dense<> layer3(16, 2);
+    SoftmaxCrossEntropy<> layer4;
+    optimizer::SGD<> sgd(1.0, 0.001);
 
-
+	std::cout << "decltype(i) is " << type_name<decltype(x_train)>() << '\n';
 	// // START Test code -----------------
 	// Dense layer1(2, 4);
 	
@@ -118,7 +157,6 @@ int main(int argc, char *argv[]) {
 		}
 
     }
-
 
     return 0;
 }

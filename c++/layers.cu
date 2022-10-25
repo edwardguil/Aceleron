@@ -2,7 +2,6 @@
 #include <random>
 #include <cstdio>
 #include "matrix.h"
-#include "layers.h"
 
 
 // ------------- DENSE  -------------- //
@@ -16,7 +15,8 @@
 * @n_inputs: the number of features/dimensions of the input data (after flattening)
 * @n_neurons: the number of neurons to be contained in the layer
 */
-Dense::Dense(int n_inputs, int n_neurons): 
+template<typename dtype, typename vtype>
+Dense<dtype, vtype>::Dense(int n_inputs, int n_neurons): 
             weights(n_inputs, n_neurons), biases(1, n_neurons, 1), 
             dweights(n_inputs, n_neurons), dbiases(1, n_neurons, 1) 
             { 
@@ -27,9 +27,10 @@ Dense::Dense(int n_inputs, int n_neurons):
 * -----
 * Randomizes the layers weights using a uniform distribution.
 */
-void Dense::randomize_weights() {
+template<typename dtype, typename vtype>
+void Dense<dtype, vtype>::randomize_weights() {
     std::default_random_engine generator;
-    std::uniform_real_distribution<double> distribution(0.0,1.0);
+    std::uniform_real_distribution<dtype> distribution(0.0,1.0);
     for (int i = 0; i < weights.rows; i++) {
         for (int j = 0; j < weights.cols; j++) {
             weights[i*weights.cols + j] = (double) distribution(generator);
@@ -46,7 +47,8 @@ void Dense::randomize_weights() {
 
 * Returns: the resulting matrix after performing operations.
 */
-matrix::Matrix<double> Dense::forward(matrix::Matrix<double>& input) {
+template<typename dtype, typename vtype>
+matrix::Matrix<dtype, vtype> Dense<dtype, vtype>::forward(matrix::Matrix<dtype, vtype>& input) {
     // Calculate the dot product between each neuron and input data
     return matrix::add(matrix::dot(input, weights), biases);
 }
@@ -62,8 +64,9 @@ matrix::Matrix<double> Dense::forward(matrix::Matrix<double>& input) {
 *
 * Returns: the partial derivative w.r.t the layers output
 */
-matrix::Matrix<double> Dense::backward(matrix::Matrix<double>& inputs, 
-	    matrix::Matrix<double>& dinput) {
+template<typename dtype, typename vtype>
+matrix::Matrix<dtype, vtype> Dense<dtype, vtype>::backward(matrix::Matrix<dtype, vtype>& inputs, 
+	    matrix::Matrix<dtype, vtype>& dinput) {
     dweights = matrix::dot(matrix::transpose(inputs), dinput);
     dbiases = matrix::sum(dinput, 0, true);
     return matrix::dot(dinput, matrix::transpose(weights));
@@ -75,7 +78,8 @@ matrix::Matrix<double> Dense::backward(matrix::Matrix<double>& inputs,
 *
 * Returns: the member variable dweights
 */
-matrix::Matrix<double> Dense::get_dweights() {
+template<typename dtype, typename vtype>
+matrix::Matrix<dtype, vtype> Dense<dtype, vtype>::get_dweights() {
     return dweights;
 }
 
@@ -85,7 +89,8 @@ matrix::Matrix<double> Dense::get_dweights() {
 *
 * Returns: the member variable dbiases
 */
-matrix::Matrix<double> Dense::get_dbiases() {
+template<typename dtype, typename vtype>
+matrix::Matrix<dtype, vtype> Dense<dtype, vtype>::get_dbiases() {
     return dbiases;
 }
 
@@ -95,7 +100,8 @@ matrix::Matrix<double> Dense::get_dbiases() {
 *
 * Returns: the member variable biases
 */
-matrix::Matrix<double> Dense::get_biases() {
+template<typename dtype, typename vtype>
+matrix::Matrix<dtype, vtype> Dense<dtype, vtype>::get_biases() {
     return biases;
 }
 
@@ -105,7 +111,8 @@ matrix::Matrix<double> Dense::get_biases() {
 *
 * Returns: the member variable weights
 */
-matrix::Matrix<double> Dense::get_weights() {
+template<typename dtype, typename vtype>
+matrix::Matrix<dtype, vtype> Dense<dtype, vtype>::get_weights() {
     return weights;
 }
 
@@ -115,7 +122,8 @@ matrix::Matrix<double> Dense::get_weights() {
 * 
 * @new_biases: the new biases to be set for the layer
 */
-void Dense::set_biases(matrix::Matrix<double> new_biases) {
+template<typename dtype, typename vtype>
+void Dense<dtype, vtype>::set_biases(matrix::Matrix<dtype, vtype> new_biases) {
     biases = new_biases;
 }
 
@@ -125,13 +133,14 @@ void Dense::set_biases(matrix::Matrix<double> new_biases) {
 * 
 * @new_weights: the new weights to be set for the layer
 */
-void Dense::set_weights(matrix::Matrix<double> new_weights) {
+template<typename dtype, typename vtype>
+void Dense<dtype, vtype>::set_weights(matrix::Matrix<dtype, vtype> new_weights) {
     weights = new_weights;
 }
 
 // ------------- RELU  -------------- //
-
-ReLU::ReLU(void) {}
+template<typename dtype, typename vtype>
+ReLU<dtype, vtype>::ReLU(void) {}
 
 /* ReLU::forward()
 * -----
@@ -141,7 +150,8 @@ ReLU::ReLU(void) {}
 
 * Returns: the resulting matrix after performing operations.
 */
-matrix::Matrix<double> ReLU::forward(matrix::Matrix<double>& input) {
+template<typename dtype, typename vtype>
+matrix::Matrix<dtype, vtype> ReLU<dtype, vtype>::forward(matrix::Matrix<dtype, vtype>& input) {
     for (int i = 0; i < input.rows; i++) {
         for (int j = 0; j < input.cols; j++) {
             if (input[i*input.cols + j] < 0) {
@@ -163,8 +173,9 @@ matrix::Matrix<double> ReLU::forward(matrix::Matrix<double>& input) {
 *
 * Returns: the partial derivative w.r.t the relus output
 */
-matrix::Matrix<double> ReLU::backward(matrix::Matrix<double>& inputs, 
-	    matrix::Matrix<double>& dinput) {
+template<typename dtype, typename vtype>
+matrix::Matrix<dtype, vtype> ReLU<dtype, vtype>::backward(matrix::Matrix<dtype, vtype>& inputs, 
+	    matrix::Matrix<dtype, vtype>& dinput) {
     for (int i = 0; i < dinput.rows; i++) {
         for (int j = 0; j < dinput.cols; j++) {
             if (inputs[i*inputs.cols + j] <= 0) {
@@ -176,8 +187,8 @@ matrix::Matrix<double> ReLU::backward(matrix::Matrix<double>& inputs,
 }
 
 // ------------- SOFTMAX -------------- //
-
-Softmax::Softmax(void) {}
+template<typename dtype, typename vtype>
+Softmax<dtype, vtype>::Softmax(void) {}
 
 /* SoftMax::forward()
 * -----
@@ -190,8 +201,9 @@ Softmax::Softmax(void) {}
 *
 * Returns: the resulting matrix after performing operations.
 */
-matrix::Matrix<double> Softmax::forward(matrix::Matrix<double>& input) {
-    matrix::Matrix<double> temp = matrix::exp(matrix::subtract(input, 
+template<typename dtype, typename vtype>
+matrix::Matrix<dtype, vtype> Softmax<dtype, vtype>::forward(matrix::Matrix<dtype, vtype>& input) {
+    matrix::Matrix<dtype, vtype> temp = matrix::exp(matrix::subtract(input, 
 		matrix::max(input)));
     return matrix::division(temp, matrix::sum(temp));
 }
@@ -206,7 +218,8 @@ matrix::Matrix<double> Softmax::forward(matrix::Matrix<double>& input) {
 *
 * Returns: the derivative matrix passed
 */
-matrix::Matrix<double> Softmax::backward(matrix::Matrix<double>& dinput) {
+template<typename dtype, typename vtype>
+matrix::Matrix<dtype, vtype> Softmax<dtype, vtype>::backward(matrix::Matrix<dtype, vtype>& dinput) {
     return dinput;
 }
 
@@ -217,7 +230,8 @@ matrix::Matrix<double> Softmax::backward(matrix::Matrix<double>& dinput) {
 * Combines the Softmax and CrossEntropyLoss into one layer. The purpose
 * of this connection is simplify the calculations of partial derivative. 
 */
-SoftmaxCrossEntropy::SoftmaxCrossEntropy(void): softmax(), crossEntropy() {}
+template<typename dtype, typename vtype>
+SoftmaxCrossEntropy<dtype, vtype>::SoftmaxCrossEntropy(void): softmax(), crossEntropy() {}
 
 /* SoftmaxCrossEntropy::forward()
 * -----
@@ -231,9 +245,10 @@ SoftmaxCrossEntropy::SoftmaxCrossEntropy(void): softmax(), crossEntropy() {}
 
 * Returns: the resulting matrix from softmax 
 */
-matrix::Matrix<double> SoftmaxCrossEntropy::forward(matrix::Matrix<double>& input, 
-	    matrix::Matrix<double>& y_true) {
-    matrix::Matrix<double> out = softmax.forward(input);
+template<typename dtype, typename vtype>
+matrix::Matrix<dtype, vtype> SoftmaxCrossEntropy<dtype, vtype>::forward(matrix::Matrix<dtype, vtype>& input, 
+	    matrix::Matrix<dtype, vtype>& y_true) {
+    matrix::Matrix<dtype, vtype> out = softmax.forward(input);
     loss = crossEntropy.calculateLoss(out, y_true);
     return out;
 }
@@ -248,14 +263,15 @@ matrix::Matrix<double> SoftmaxCrossEntropy::forward(matrix::Matrix<double>& inpu
 *
 * Returns: the partial derivative w.r.t the layers output
 */
-matrix::Matrix<double> SoftmaxCrossEntropy::backward(matrix::Matrix<double>& dinput, 
-	    matrix::Matrix<double>& y_true) {
+template<typename dtype, typename vtype>
+matrix::Matrix<dtype, vtype> SoftmaxCrossEntropy<dtype, vtype>::backward(matrix::Matrix<dtype, vtype>& dinput, 
+	    matrix::Matrix<dtype, vtype>& y_true) {
     // Expects y_true to be one hot encoded
     matrix::Matrix<int> converted = matrix::argmax(y_true);
     for (int i = 0; i < dinput.rows; i++) {
         dinput[i*dinput.cols + converted[i]] -= 1;
     }
-    matrix::Matrix<double> temp(1, 1, dinput.rows);
+    matrix::Matrix<dtype, vtype> temp(1, 1, dinput.rows);
     return matrix::division(dinput, temp);
 }
 
@@ -265,6 +281,7 @@ matrix::Matrix<double> SoftmaxCrossEntropy::backward(matrix::Matrix<double>& din
 *
 * Returns: the member variable loss
 */
-double SoftmaxCrossEntropy::get_loss() {
+template<typename dtype, typename vtype>
+double SoftmaxCrossEntropy<dtype, vtype>::get_loss() {
     return loss;
 }

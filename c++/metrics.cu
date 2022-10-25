@@ -1,5 +1,4 @@
 #include "matrix.h"
-#include "metrics.h"
 #include <iostream>
 namespace metric
 {
@@ -13,8 +12,9 @@ namespace metric
 	*
 	* Returns: the calculated accuracy
 	*/
-    double accuracy(matrix::Matrix<double> y_true, 
-			matrix::Matrix<double> y_pred) {
+	template<typename dtype, typename vtype>
+    double accuracy(matrix::Matrix<dtype, vtype> y_true, 
+			matrix::Matrix<dtype, vtype> y_pred) {
 
 		matrix::Matrix<int> prediction = matrix::argmax(y_pred);
 		matrix::Matrix<int> tru = matrix::argmax(y_true);

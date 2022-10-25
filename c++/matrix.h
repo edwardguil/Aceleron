@@ -4,7 +4,7 @@
 #include <vector>
 namespace matrix 
 {
-template <typename dtype, typename vtype = std::vector<dtype>>
+template <typename dtype, typename vtype = std::vector<dtype, std::allocator<dtype>>>
 class Matrix {
     vtype matrix;
 public:

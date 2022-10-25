@@ -2,26 +2,30 @@
 #define LOSSES_H
 #include "matrix.h"
 // Abstract Class
+template<typename dtype = double, typename vtype = std::vector<double>>
 class Loss {
 public: 
     // Abstract Method
-    virtual matrix::Matrix<double> loss(matrix::Matrix<double> y_true, 
-		matrix::Matrix<double> y_pred) = 0;
+    virtual matrix::Matrix<dtype, vtype> loss(matrix::Matrix<dtype, vtype> y_true, 
+		matrix::Matrix<dtype, vtype> y_pred) = 0;
     
-    double calculateLoss(matrix::Matrix<double> y_true, 
-		matrix::Matrix<double> y_pred);
+    double calculateLoss(matrix::Matrix<dtype, vtype> y_true, 
+		matrix::Matrix<dtype, vtype> y_pred);
 };
 
-
-class CategoricalCrossentropy: public Loss {
+template<typename dtype = double, typename vtype = std::vector<double>>
+class CategoricalCrossentropy: public Loss<dtype, vtype> {
 public: 
-    matrix::Matrix<double> loss(matrix::Matrix<double> y_true, 
-		matrix::Matrix<double> y_pred);
+    matrix::Matrix<dtype, vtype> loss(matrix::Matrix<dtype, vtype> y_true, 
+		matrix::Matrix<dtype, vtype> y_pred);
 };
 
-class SparseCategoricalCrossentropy: public Loss {
+template<typename dtype = double, typename vtype = std::vector<double>>
+class SparseCategoricalCrossentropy: public Loss<dtype, vtype> {
 public: 
-    matrix::Matrix<double> loss(matrix::Matrix<double> y_true, 
-		matrix::Matrix<double> y_pred);
+    matrix::Matrix<dtype, vtype> loss(matrix::Matrix<dtype, vtype> y_true, 
+		matrix::Matrix<dtype, vtype> y_pred);
 };
+
+#include "losses.cu"
 #endif

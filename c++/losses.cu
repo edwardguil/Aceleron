@@ -1,5 +1,4 @@
 #include "matrix.h"
-#include "losses.h"
 
 /* Loss::calculateLoss()
 * -----
@@ -11,8 +10,9 @@
 *
 * Returns: the calculated loss
 */
-double Loss::calculateLoss(matrix::Matrix<double> y_true, 
-	    matrix::Matrix<double> y_pred) {
+template<typename dtype, typename vtype>
+double Loss<dtype, vtype>::calculateLoss(matrix::Matrix<dtype, vtype> y_true, 
+	    matrix::Matrix<dtype, vtype> y_pred) {
     return matrix::sum(loss(y_true, y_pred), 1, false)[0] / y_true.rows; 
 }
 
@@ -25,8 +25,9 @@ double Loss::calculateLoss(matrix::Matrix<double> y_true,
 *
 * Returns: the calculated loss for each sample
 */
-matrix::Matrix<double> CategoricalCrossentropy::loss(matrix::Matrix<double> y_true, 
-	    matrix::Matrix<double> y_pred) {
+template<typename dtype, typename vtype>
+matrix::Matrix<dtype, vtype> CategoricalCrossentropy<dtype, vtype>::loss(matrix::Matrix<dtype, vtype> y_true, 
+	    matrix::Matrix<dtype, vtype> y_pred) {
     // Expects y_true to be one hot encoded
     return matrix::mul_const(matrix::log(matrix::sum(matrix::mul(y_true, 
 			y_pred))), (double) -1.0);
@@ -41,8 +42,9 @@ matrix::Matrix<double> CategoricalCrossentropy::loss(matrix::Matrix<double> y_tr
 *
 * Returns: the calculated loss for each sample
 */
-matrix::Matrix<double> SparseCategoricalCrossentropy::loss(matrix::Matrix<double> y_true, 
-	    matrix::Matrix<double> y_pred) {
+template<typename dtype, typename vtype>
+matrix::Matrix<dtype, vtype> SparseCategoricalCrossentropy<dtype, vtype>::loss(matrix::Matrix<dtype, vtype> y_true, 
+	    matrix::Matrix<dtype, vtype> y_pred) {
     // NEEDS TO BE -np.log(y_pred[range(len(y_true)), y_true]):wq 
     return matrix::mul_const(matrix::log(y_true), (double) -1.0);
 }

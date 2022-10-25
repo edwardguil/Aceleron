@@ -1,4 +1,3 @@
-#include "optimizers.h"
 #include "layers.h"
 #include "matrix.h"
 
@@ -16,7 +15,8 @@ namespace optimizer
 * @decay: the amount the learning rate should decay after each 
 *       iteration. 0.001 is standard.
 */
-SGD::SGD(double learning_rate, double decay): learning_rate(learning_rate), 
+template<typename dtype, typename vtype>
+SGD<dtype, vtype>::SGD(double learning_rate, double decay): learning_rate(learning_rate), 
 	decay(decay) { 
     iterations = 0;
     current_learning_rate = learning_rate;
@@ -27,7 +27,8 @@ SGD::SGD(double learning_rate, double decay): learning_rate(learning_rate),
 * Reduces the current learning rate by a %. Should be called
 * after every iteration and before every update. 
 */
-void SGD::pre_update() {
+template<typename dtype, typename vtype>
+void SGD<dtype, vtype>::pre_update() {
     current_learning_rate = learning_rate * (1.0 / (1.0 + decay * iterations));
 }
 
@@ -40,9 +41,10 @@ void SGD::pre_update() {
 * 
 * @layer: the layer to be updated
 */
-void SGD::update(Dense* layer) {
-    matrix::Matrix<double> weights_updates = matrix::mul_const((*layer).get_dweights(), -current_learning_rate);
-    matrix::Matrix<double> biases_updates = matrix::mul_const((*layer).get_dbiases(), -current_learning_rate);
+template<typename dtype, typename vtype>
+void SGD<dtype, vtype>::update(Dense<dtype, vtype>* layer) {
+    matrix::Matrix<dtype, vtype> weights_updates = matrix::mul_const((*layer).get_dweights(), -current_learning_rate);
+    matrix::Matrix<dtype, vtype> biases_updates = matrix::mul_const((*layer).get_dbiases(), -current_learning_rate);
     
     (*layer).set_weights(matrix::add(weights_updates, ((*layer).get_weights())));
     (*layer).set_biases(matrix::add(biases_updates, (*layer).get_biases())); 
@@ -54,7 +56,8 @@ void SGD::update(Dense* layer) {
 * called after every iteration. Important for decaying
 * the learning rate.
 */
-void SGD::post_update() {
+template<typename dtype, typename vtype>
+void SGD<dtype, vtype>::post_update() {
     iterations += 1;
 }
 
@@ -65,7 +68,8 @@ void SGD::post_update() {
 *
 * Returns: the private member current_learning_rate.
 */
-double SGD::get_lr() {
+template<typename dtype, typename vtype>
+double SGD<dtype, vtype>::get_lr() {
     return current_learning_rate;
 }
 
