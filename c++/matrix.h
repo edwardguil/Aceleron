@@ -14,6 +14,7 @@ public:
 
     Matrix(int rows, int cols, dtype value = 0);
     Matrix();
+    ~Matrix();
 
     dtype& operator[](int i);
 
@@ -22,7 +23,7 @@ public:
     int size();
 
     vtype get_matrix();
-    void get_matrix(Matrix<dtype>);
+    void get_matrix(Matrix<dtype>&);
     
     Matrix<dtype> copy();
 };

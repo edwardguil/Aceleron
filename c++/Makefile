@@ -5,7 +5,7 @@ NVFLAGS = --gpu-architecture=sm_35 -Wno-deprecated-gpu-targets -pg -g
 DEPEND := layers.cu losses.cu metrics.cu optimizers.cu matrix.cu cuda.o
 OBJFILES := cuda.o
 
-all: driverParrallel
+all: driver driverp
 
 driver : driver.o
 	$(NVCC) $(NVFLAGS) $(OBJFILES) driver.o -o $@
@@ -13,14 +13,20 @@ driver : driver.o
 driver.o: driver.cu  $(DEPEND)
 	$(NVCC) $(NVFLAGS) -c -o driver.o driver.cu
 
-driverParrallel : driverParrallel.o
-	$(NVCC) $(NVFLAGS) $(OBJFILES) driverParrallel.o -o driver
+driverp : driverParrallel.o
+	$(NVCC) $(NVFLAGS) $(OBJFILES) driverParrallel.o -o driverp
 
 driverParrallel.o: driverParrallel.cu $(DEPEND)
 	$(NVCC) $(NVFLAGS) -c -o driverParrallel.o driverParrallel.cu
+
+tests : tests.o
+	$(NVCC) $(NVFLAGS) $(OBJFILES) tests.o -o tests
+
+tests.o: tests.cu $(DEPEND)
+	$(NVCC) $(NVFLAGS) -c -o tests.o tests.cu
 
 %.o : %.cu 
 	$(NVCC) $(NVFLAGS) -c $< -o $@ 
 
 clean: 
-	rm driver driver.o driverParrallel driverParrallel.o  debug debug.o 
+	rm driver driver.o driverp driverParrallel.o debug debug.o tests.o tests

@@ -16,11 +16,11 @@
 * @n_neurons: the number of neurons to be contained in the layer
 */
 template<typename dtype, typename vtype>
-Dense<dtype, vtype>::Dense(int n_inputs, int n_neurons): 
+Dense<dtype, vtype>::Dense(int n_inputs, int n_neurons, bool randomize): 
             weights(n_inputs, n_neurons), biases(1, n_neurons, 1), 
             dweights(n_inputs, n_neurons), dbiases(1, n_neurons, 1) 
             { 
-       randomize_weights();
+       randomize_weights(randomize);
 }
 
 /* Dense::randomize_weights()
@@ -28,12 +28,12 @@ Dense<dtype, vtype>::Dense(int n_inputs, int n_neurons):
 * Randomizes the layers weights using a uniform distribution.
 */
 template<typename dtype, typename vtype>
-void Dense<dtype, vtype>::randomize_weights() {
+void Dense<dtype, vtype>::randomize_weights(bool randomize) {
     std::default_random_engine generator;
     std::uniform_real_distribution<dtype> distribution(0.0,1.0);
     for (int i = 0; i < weights.rows; i++) {
         for (int j = 0; j < weights.cols; j++) {
-            weights[i*weights.cols + j] = (double) distribution(generator);
+            weights[i*weights.cols + j] = randomize ? (double) distribution(generator) : (double) 1.0;
         }
     }
 }
@@ -43,13 +43,13 @@ void Dense<dtype, vtype>::randomize_weights() {
 * Randomizes the layers weights using a uniform distribution.
 */
 template<>
-void Dense<double, double*>::randomize_weights() {
+void Dense<double, double*>::randomize_weights(bool randomize) {
     std::default_random_engine generator;
     std::uniform_real_distribution<double> distribution(0.0,1.0);
     std::vector<double> randomized(weights.rows * weights.cols);
     for (int i = 0; i < weights.rows; i++) {
         for (int j = 0; j < weights.cols; j++) {
-            randomized[i*weights.cols + j] = (double) distribution(generator);
+            randomized[i*weights.cols + j] = randomize ? distribution(generator) : (double) 1.0;
         }
     }
     weights.set_matrix(&(randomized[0]));
@@ -164,20 +164,24 @@ ReLU<dtype, vtype>::ReLU(void) {}
 * -----
 * Passes the input through the layer. Any values
 * less than zero in the parsed input will be set to zero. 
+* Note for memory efficency, this edits the passed matrix.
 * @input: the input to be passed through the layer 
-
+*
 * Returns: the resulting matrix after performing operations.
 */
 template<typename dtype, typename vtype>
 matrix::Matrix<dtype, vtype> ReLU<dtype, vtype>::forward(matrix::Matrix<dtype, vtype>& input) {
+    matrix::Matrix<dtype, vtype> out(input.rows, input.cols);
     for (int i = 0; i < input.rows; i++) {
         for (int j = 0; j < input.cols; j++) {
             if (input[i*input.cols + j] < 0) {
-            input[i*input.cols + j] = 0;
+                out[i*input.cols + j] = 0;
+            } else {
+                out[i*input.cols + j]  = input[i*input.cols + j];
             }
         }
     }
-    return input;
+    return out;
 }
 
 /* ReLU::forward()
@@ -190,8 +194,7 @@ matrix::Matrix<dtype, vtype> ReLU<dtype, vtype>::forward(matrix::Matrix<dtype, v
 */
 template<>
 matrix::Matrix<double, double*> ReLU<double, double*>::forward(matrix::Matrix<double, double*>& input) {
-    matrix::relu_fwd(input);
-    return input;
+    return matrix::relu_fwd(input);
 }
 
 /* ReLU::backward()

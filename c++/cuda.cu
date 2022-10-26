@@ -177,7 +177,7 @@ void division(int a_rows, int a_cols, int loop, double* a, double* b, double* c)
 }
 
 __global__
-void cuda_log(int a_rows, int a_cols, double* a) {
+void cuda_log(int a_rows, int a_cols, double* a, double* b) {
     int i = threadIdx.x + blockIdx.x * blockDim.x; // Global i
     int j = threadIdx.y + blockIdx.y * blockDim.y; // Global j
 
@@ -185,11 +185,11 @@ void cuda_log(int a_rows, int a_cols, double* a) {
     if ((i >= a_rows) || (j >= a_rows)) {
         return;
     }
-    a[i*a_cols + j] = log(a[i*a_cols + j]);
+    b[i*a_cols + j] = log(a[i*a_cols + j]);
 }
 
 __global__
-void cuda_exp(int a_rows, int a_cols, double* a) {
+void cuda_exp(int a_rows, int a_cols, double* a, double* b) {
     int i = threadIdx.x + blockIdx.x * blockDim.x; // Global i
     int j = threadIdx.y + blockIdx.y * blockDim.y; // Global j
 
@@ -197,11 +197,11 @@ void cuda_exp(int a_rows, int a_cols, double* a) {
     if ((i >= a_rows) || (j >= a_rows)) {
         return;
     }
-    a[i*a_cols + j] = exp(a[i*a_cols + j]);
+    b[i*a_cols + j] = exp(a[i*a_cols + j]);
 }
 
 __global__
-void relu_fwd(int a_rows, int a_cols, double* a) {
+void relu_fwd(int a_rows, int a_cols, double* a, double* b) {
     int i = threadIdx.x + blockIdx.x * blockDim.x; // Global i
     int j = threadIdx.y + blockIdx.y * blockDim.y; // Global j
 
@@ -211,7 +211,9 @@ void relu_fwd(int a_rows, int a_cols, double* a) {
     }
 
     if (a[i*a_cols + j] < 0) {
-        a[i*a_cols + j] = 0;
+        b[i*a_cols + j] = 0;
+    } else {
+        b[i*a_cols + j] = a[i*a_cols + j];
     }
 }
 

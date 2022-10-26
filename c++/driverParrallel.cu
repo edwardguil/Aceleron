@@ -16,37 +16,15 @@
 #include <cstdlib>
 
 template <class T>
-std::string
-type_name()
-{
-    typedef typename std::remove_reference<T>::type TR;
-    std::unique_ptr<char, void(*)(void*)> own
-           (
-#ifndef _MSC_VER
-                abi::__cxa_demangle(typeid(TR).name(), nullptr,
-                                           nullptr, nullptr),
-#else
-                nullptr,
-#endif
-                std::free
-           );
-    std::string r = own != nullptr ? own.get() : typeid(TR).name();
-    if (std::is_const<TR>::value)
-        r += " const";
-    if (std::is_volatile<TR>::value)
-        r += " volatile";
-    if (std::is_lvalue_reference<T>::value)
-        r += "&";
-    else if (std::is_rvalue_reference<T>::value)
-        r += "&&";
-    return r;
-}
+std::string type_name();
 
 using namespace matrix;
 
-template<typename dtype, typename vtype>
-void handle_input(Matrix<dtype, vtype>& x_train, Matrix<dtype, vtype>& y_train, 
-		Matrix<dtype, vtype>& x_test, Matrix<dtype, vtype>& y_test, int N);
+void handle_input(Matrix<double, double*>& x_train, Matrix<double, double*>& y_train, 
+		Matrix<double, double*>& x_test, Matrix<double, double*>& y_test, int N);
+
+void handle_input(Matrix<double>& x_train, Matrix<double>& y_train, 
+		Matrix<double>& x_test, Matrix<double>& y_test, int N);
 
 /* main()
 * -----
@@ -77,8 +55,8 @@ int main(int argc, char *argv[]) {
 	}
 
 
-	std::cout << "N: " << N << std::endl;
-	int train_size = N * 0.8;
+	//std::cout << "N: " << N << std::endl;
+	int train_size = N * 0.80;
 
 	// Define the training and testing Matrixes
     Matrix<double, double*> x_train(train_size, 2);
@@ -88,32 +66,61 @@ int main(int argc, char *argv[]) {
 	// This function allocates the data to these matrices
 	handle_input(x_train, y_train, x_test, y_test, N);
 
-
-
-
+    Matrix<double> x_train_s(train_size, 2);
+    Matrix<double> y_train_s(train_size, 2);
+    Matrix<double> x_test_s(N - train_size, 2);
+    Matrix<double> y_test_s(N - train_size, 2);
+	handle_input(x_train_s, y_train_s, x_test_s, y_test_s, N);
 
 	// Construct our network
-    Dense<double, double*> layer1(2, 16);
+    Dense<double, double*> layer1(2, 16, false);
     ReLU<double, double*> layer2;
-    Dense<double, double*> layer3(16, 2);
-    //SoftmaxCrossEntropy<double, double*> layer4;
+    Dense<double, double*> layer3(16, 2, false);
     Softmax<double, double*> layer4;
-	// optimizer::SGD<double, double*> sgd(1.0, 0.001);
+
+	// Serial
+	Dense<double> layer1_s(16, 3, false);
+    ReLU<double> layer2_s;
+    Dense<double> layer3_s(16, 2, false);
+    Softmax<double> layer4_s;
 	
-	std::cout << "decltype(i) is " << type_name<decltype(x_train)>() << '\n';
-	std::cout << "decltype(i) is " << type_name<decltype(layer1)>() << '\n';
+	// --------------- Tests -------------------------
+	// std::cout << "CUDA IMPLEMENTATION" << std::endl;
+	// print(dot(x_train, layer1.weights));
+	// print(layer1.biases);
+	// print(add(dot(x_train, layer1.weights), layer1.biases));
+
+	// // print(layer1.weights);
+	// // print(x_train);
+	// // print(dot(x_train, layer1.weights));
+	// std::cout << "SERIAL IMPLEMENTATION" << std::endl;
+	// print(dot(x_train_s, layer1_s.weights));
+	// print(layer1_s.biases);
+	// print(add(dot(x_train_s, layer1_s.weights), layer1_s.biases));
+
+	// --------------- Tests -------------------------
+	// return 0;
 
 	Matrix<double, double*> out1 = layer1.forward(x_train);
 	Matrix<double, double*> out2 = layer2.forward(out1);
 	Matrix<double, double*> out3 = layer3.forward(out2); 
-	Matrix<double, double*> out4 = layer4.forward(out3);
+	Matrix<double, double*> out4 = layer4.forward(out3); 
+	std::cout << "CUDA IMPLEMENTATION" << std::endl;
+	print(out4);
+
+	Matrix<double> out1_s = layer1_s.forward(x_train_s);
+	Matrix<double> out2_s = layer2_s.forward(out1_s);
+	Matrix<double> out3_s = layer3_s.forward(out2_s); 
+	Matrix<double> out4_s = layer4_s.forward(out3_s); 
+	std::cout << "SERIAL IMPLEMENTATION" << std::endl;
+	print(out4);
+	return 0;
 
 	//print(max(out3));
-	print(out4);
+	//print(out4);
 	// std::cout << "decltype(i) is " << type_name<decltype(layer2)>() << '\n';
 	// std::cout << "decltype(i) is " << type_name<decltype(layer3)>() << '\n';
 	// std::cout << "decltype(i) is " << type_name<decltype(layer4)>() << '\n';
-	return 0;
 	// // START Test code -----------------
 	// Dense layer1(2, 4);
 	
@@ -187,9 +194,8 @@ int main(int argc, char *argv[]) {
 * @y_test: The test data labels
 * @N: The amount of data that should be inputted into the Matrix's
 */
-template<typename dtype, typename vtype>
-void handle_input(Matrix<dtype, vtype>& x_train, Matrix<dtype, vtype>& y_train, 
-		Matrix<dtype, vtype>& x_test, Matrix<dtype, vtype>& y_test, int N) {
+void handle_input(Matrix<double, double*>& x_train, Matrix<double, double*>& y_train, 
+		Matrix<double, double*>& x_test, Matrix<double, double*>& y_test, int N) {
 	if (N == 100) {
 		x_train.set_matrix(&(x_train_raw_100[0]));
 		y_train.set_matrix(&(y_train_raw_100[0]));
@@ -241,4 +247,87 @@ void handle_input(Matrix<dtype, vtype>& x_train, Matrix<dtype, vtype>& y_train,
 		x_test.set_matrix(&(x_test_raw_1000[0]));
 		y_test.set_matrix(&(y_test_raw_1000[0]));
 	}
+}
+
+
+void handle_input(Matrix<double>& x_train, Matrix<double>& y_train, 
+		Matrix<double>& x_test, Matrix<double>& y_test, int N) {
+	if (N == 100) {
+		x_train.set_matrix(x_train_raw_100);
+		y_train.set_matrix(y_train_raw_100);
+		x_test.set_matrix(x_test_raw_100);
+		y_test.set_matrix(y_test_raw_100);
+	} else if (N == 200)   {
+		x_train.set_matrix(x_train_raw_200);
+		y_train.set_matrix(y_train_raw_200);
+		x_test.set_matrix(x_test_raw_200);
+		y_test.set_matrix(y_test_raw_200);
+	} else if (N == 300)   {
+		x_train.set_matrix(x_train_raw_300);
+		y_train.set_matrix(y_train_raw_300);
+		x_test.set_matrix(x_test_raw_300);
+		y_test.set_matrix(y_test_raw_300);
+	} else if (N == 400)  {
+		x_train.set_matrix(x_train_raw_400);
+		y_train.set_matrix(y_train_raw_400);
+		x_test.set_matrix(x_test_raw_400);
+		y_test.set_matrix(y_test_raw_400);
+	} else if (N == 500) {
+		x_train.set_matrix(x_train_raw_500);
+		y_train.set_matrix(y_train_raw_500);
+		x_test.set_matrix(x_test_raw_500);
+		y_test.set_matrix(y_test_raw_500);
+	} else if (N == 600) {
+		x_train.set_matrix(x_train_raw_600);
+		y_train.set_matrix(y_train_raw_600);
+		x_test.set_matrix(x_test_raw_600);
+		y_test.set_matrix(y_test_raw_600);
+	} else if (N == 700) {
+		x_train.set_matrix(x_train_raw_700);
+		y_train.set_matrix(y_train_raw_700);
+		x_test.set_matrix(x_test_raw_700);
+		y_test.set_matrix(y_test_raw_700);
+	} else if (N == 800)  {
+		x_train.set_matrix(x_train_raw_800);
+		y_train.set_matrix(y_train_raw_800);
+		x_test.set_matrix(x_test_raw_800);
+		y_test.set_matrix(y_test_raw_800);
+	} else if (N == 900) {
+		x_train.set_matrix(x_train_raw_900);
+		y_train.set_matrix(y_train_raw_900);
+		x_test.set_matrix(x_test_raw_900);
+		y_test.set_matrix(y_test_raw_900);
+	} else if (N == 1000) {
+		x_train.set_matrix(x_train_raw_1000);
+		y_train.set_matrix(y_train_raw_1000);
+		x_test.set_matrix(x_test_raw_1000);
+		y_test.set_matrix(y_test_raw_1000);
+	}
+}
+
+template <class T>
+std::string
+type_name()
+{
+    typedef typename std::remove_reference<T>::type TR;
+    std::unique_ptr<char, void(*)(void*)> own
+           (
+#ifndef _MSC_VER
+                abi::__cxa_demangle(typeid(TR).name(), nullptr,
+                                           nullptr, nullptr),
+#else
+                nullptr,
+#endif
+                std::free
+           );
+    std::string r = own != nullptr ? own.get() : typeid(TR).name();
+    if (std::is_const<TR>::value)
+        r += " const";
+    if (std::is_volatile<TR>::value)
+        r += " volatile";
+    if (std::is_lvalue_reference<T>::value)
+        r += "&";
+    else if (std::is_rvalue_reference<T>::value)
+        r += "&&";
+    return r;
 }

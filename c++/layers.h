@@ -15,18 +15,18 @@ public:
 template<typename dtype = double, typename vtype = std::vector<double>>
 class Dense { 
 
+
+public:
+    // n_inputs x n_neurons matrix storing weights
+    matrix::Matrix<dtype, vtype> weights; 
     // 1 x n_neurons matrix storing biases
     matrix::Matrix<dtype, vtype> biases;
     // n_inputs x n_neurons matrix storing partial derivative w.r.t. loss
     matrix::Matrix<dtype, vtype> dweights;
     // 1 x n_neurons matrix storing partial derivative w.t.r loss
     matrix::Matrix<dtype, vtype> dbiases;
-
-public:
-    // n_inputs x n_neurons matrix storing weights
-    matrix::Matrix<dtype, vtype> weights; 
     
-    Dense(int n_inputs, int n_neurons);
+    Dense(int n_inputs, int n_neurons, bool randomize = true);
     matrix::Matrix<dtype, vtype> forward(matrix::Matrix<dtype, vtype>& input);
     matrix::Matrix<dtype, vtype> backward(matrix::Matrix<dtype, vtype>& inputs, 
 		matrix::Matrix<dtype, vtype>& dinput);
@@ -34,7 +34,7 @@ public:
     matrix::Matrix<dtype, vtype> get_dweights();
     matrix::Matrix<dtype, vtype> get_biases();
     matrix::Matrix<dtype, vtype> get_weights();
-    void randomize_weights();
+    void randomize_weights(bool randomize);
     void set_biases(matrix::Matrix<dtype, vtype> new_biases);
     void set_weights(matrix::Matrix<dtype, vtype> new_weights);
 

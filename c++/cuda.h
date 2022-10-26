@@ -33,13 +33,13 @@ __global__
 void division(int a_rows, int a_cols, int loop, double* a, double* b, double* c);
 
 __global__
-void cuda_log(int a_rows, int a_cols, double* a);
+void cuda_log(int a_rows, int a_cols, double* a, double* b);
 
 __global__
-void cuda_exp(int a_rows, int a_cols, double* a);
+void cuda_exp(int a_rows, int a_cols, double* a, double* b);
 
 __global__
-void relu_fwd(int a_rows, int a_cols, double* a);
+void relu_fwd(int a_rows, int a_cols, double* a, double* b);
 
 }
 #endif
