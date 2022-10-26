@@ -4,7 +4,7 @@
 
 namespace metric
 {
-    template<typename dtype = double, typename vtype = std::vector<double>>
+    template<typename dtype = double, typename vtype = std::vector<dtype, std::allocator<dtype>>>
     double accuracy(matrix::Matrix<dtype, vtype> y_true, matrix::Matrix<dtype, vtype> y_pred);
 }
 

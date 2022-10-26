@@ -112,22 +112,30 @@ int main(int argc, char *argv[]) {
 	Matrix<double> out2_s = layer2_s.forward(out1_s);
 	Matrix<double> out3_s = layer3_s.forward(out2_s); 
 	Matrix<double> out4_s = layer4_s.forward(y_train_s, out3_s); 
+	double acc_s = metric::accuracy(y_train_s, out4_s);
+	std::cout << "loss: " << layer4_s.get_loss() << " acc: " << acc_s << std::endl;
 	// Matrix<double> out4_s = layer4_s.forward(out3_s);
 	// double loss_s = layer5_s.calculateLoss(y_train_s, out4_s);
-	std::cout << "Loss: " << layer4_s.get_loss() << std::endl;
-	print(out4_s); 
-	flush(std::cout);
 
 	std::cout << "CUDA IMPLEMENTATION" << std::endl;
 	Matrix<double, double*> out1 = layer1.forward(x_train);
 	Matrix<double, double*> out2 = layer2.forward(out1);
 	Matrix<double, double*> out3 = layer3.forward(out2); 
 	Matrix<double, double*> out4= layer4.forward(y_train, out3); 
+	double acc = metric::accuracy(y_train, out4);
+	std::cout << "loss: " << layer4.get_loss() << " acc: " << acc << std::endl;
+	// double acc = metric::accuracy<double, double*>(y_train, out4);
+	// std::cout << "acc: " << acc << std::endl;
 	// Matrix<double, double*> out4 = layer4.forward(out3);
 	// double loss = layer5.calculateLoss(y_train, out4);
-	std::cout << "Loss: " << layer4.get_loss() << std::endl;
-	print(out4);
-	flush(std::cout);
+
+	// Matrix<double> back4 = layer4.backward(out4, y_train);
+	// Matrix<double> back3 = layer3.backward(out2, back4);
+	// Matrix<double> back2 = layer2.backward(out1, back3);
+	// Matrix<double> back1 = layer1.backward(x_train, back2);
+
+
+
 
 
 	// std::cout << "SERIAL IMPLEMENTATION" << std::endl;

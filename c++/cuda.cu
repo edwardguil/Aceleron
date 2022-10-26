@@ -12,8 +12,9 @@ void checkError(cudaError_t e)
    }
 }
 
+template <typename dtype>
 __global__
-void dot(int a_rows, int b_cols, int common, double* a, double* b, double* c) {
+void dot(int a_rows, int b_cols, int common, dtype* a, dtype* b, dtype* c) {
     int i = threadIdx.x + blockIdx.x * blockDim.x; // Global i
     int j = threadIdx.y + blockIdx.y * blockDim.y; // Global j
 
@@ -22,15 +23,16 @@ void dot(int a_rows, int b_cols, int common, double* a, double* b, double* c) {
         return;
     }
 
-    double sum = 0;
+    dtype sum = 0;
     for (int k = 0; k < common; ++k) {
         sum += a[i*common + k] * b[k*b_cols + j];
     }
     c[i * b_cols + j] = sum;
 }
 
+template <typename dtype>
 __global__
-void max(int a_rows, int a_cols, double* a, double* b) {
+void max(int a_rows, int a_cols, dtype* a, dtype* b) {
     int i = threadIdx.x + blockIdx.x * blockDim.x; // Global i
 
     // Ensure i not larger than respective array
@@ -45,8 +47,9 @@ void max(int a_rows, int a_cols, double* a, double* b) {
     }
 }
 
+template <typename dtype>
 __global__
-void sum_keepdims_0(int a_rows, int a_cols, double* a, double* b) {
+void sum_keepdims_0(int a_rows, int a_cols, dtype* a, dtype* b) {
     // Provide blocks in column majour order
     int i = threadIdx.x + blockIdx.x * blockDim.x; // Global i
 
@@ -60,8 +63,9 @@ void sum_keepdims_0(int a_rows, int a_cols, double* a, double* b) {
     }
 }
 
+template <typename dtype>
 __global__
-void sum_keepdims_1(int a_rows, int a_cols, double* a, double* b) {
+void sum_keepdims_1(int a_rows, int a_cols, dtype* a, dtype* b) {
     int i = threadIdx.x + blockIdx.x * blockDim.x; // Global i
 
     // Ensure i not larger than respective array
@@ -103,7 +107,37 @@ void sum_reduce(int N, double* a, double* b) {
 }
 
 __global__
-void add(int a_rows, int a_cols, int loop, double* a, double* b, double* c) {
+void sum_reduce(int N, int* a, int* b) {
+    extern __shared__ int idata[];
+    // each thread loads one element from global to shared mem
+    int tid = threadIdx.x;
+    int i = blockIdx.x*blockDim.x + threadIdx.x;
+
+    if (i >= N) {
+        idata[tid] = 0;
+        return;
+    }
+
+    idata[tid] = a[i];
+    __syncthreads();
+    // do reduction in shared mem
+    for (unsigned int s=blockDim.x/2; s>0; s>>=1) {
+        if (tid < s) {
+            idata[tid] += idata[tid + s];
+        }
+        __syncthreads();
+    }
+    __syncthreads();
+    // write result for this block to global mem
+    if (tid == 0) { 
+        b[blockIdx.x] = idata[0];
+    }
+}
+
+
+template <typename dtype>
+__global__
+void add(int a_rows, int a_cols, int loop, dtype* a, dtype* b, dtype* c) {
     int i = threadIdx.x + blockIdx.x * blockDim.x; // Global i
     int j = threadIdx.y + blockIdx.y * blockDim.y; // Global j
 
@@ -122,8 +156,9 @@ void add(int a_rows, int a_cols, int loop, double* a, double* b, double* c) {
     } 
 }
 
+template <typename dtype>
 __global__
-void subtract(int a_rows, int a_cols, int loop, double* a, double* b, double* c) {
+void subtract(int a_rows, int a_cols, int loop, dtype* a, dtype* b, dtype* c) {
     int i = threadIdx.x + blockIdx.x * blockDim.x; // Global i
     int j = threadIdx.y + blockIdx.y * blockDim.y; // Global j
 
@@ -142,8 +177,9 @@ void subtract(int a_rows, int a_cols, int loop, double* a, double* b, double* c)
     } 
 }
 
+template <typename dtype>
 __global__
-void mul(int a_rows, int a_cols, int loop, double* a, double* b, double* c) {
+void mul(int a_rows, int a_cols, int loop, dtype* a, dtype* b, dtype* c) {
     int i = threadIdx.x + blockIdx.x * blockDim.x; // Global i
     int j = threadIdx.y + blockIdx.y * blockDim.y; // Global j
 
@@ -162,8 +198,9 @@ void mul(int a_rows, int a_cols, int loop, double* a, double* b, double* c) {
     } 
 }
 
+template <typename dtype>
 __global__
-void division(int a_rows, int a_cols, int loop, double* a, double* b, double* c) {
+void division(int a_rows, int a_cols, int loop, dtype* a, dtype* b, dtype* c) {
     int i = threadIdx.x + blockIdx.x * blockDim.x; // Global i
     int j = threadIdx.y + blockIdx.y * blockDim.y; // Global j
 
@@ -183,7 +220,30 @@ void division(int a_rows, int a_cols, int loop, double* a, double* b, double* c)
 }
 
 __global__
-void mul_const(int a_rows, int a_cols, double value, double* a, double* b) {
+void cuda_equals(int a_rows, int a_cols, int loop, int* a, int* b, int* c) {
+    int i = threadIdx.x + blockIdx.x * blockDim.x; // Global i
+    int j = threadIdx.y + blockIdx.y * blockDim.y; // Global j
+
+    // Ensure i/j not larger than respective array
+    if ((i >= a_rows) || (j >= a_cols)) {
+        return;
+    }
+
+    // Conditional calculations
+    if (loop == 3) {
+        c[i*a_cols + j] = a[i*a_cols + j] == b[i*a_cols + j];
+    } else if (loop == 2) {
+		c[i*a_cols + j] = a[i*a_cols + j] == b[j];
+    } else {
+        c[i*a_cols + j] = a[i*a_cols + j] == b[i*loop];  
+    } 
+}
+
+
+
+template <typename dtype>
+__global__
+void mul_const(int a_rows, int a_cols, dtype value, dtype* a, dtype* b) {
     int i = threadIdx.x + blockIdx.x * blockDim.x; // Global i
     int j = threadIdx.y + blockIdx.y * blockDim.y; // Global j
 
@@ -194,8 +254,9 @@ void mul_const(int a_rows, int a_cols, double value, double* a, double* b) {
     b[i*a_cols + j] = a[i*a_cols + j] * value;
 }
 
+template <typename dtype>
 __global__
-void cuda_log(int a_rows, int a_cols, double* a, double* b) {
+void cuda_log(int a_rows, int a_cols, dtype* a, dtype* b) {
     int i = threadIdx.x + blockIdx.x * blockDim.x; // Global i
     int j = threadIdx.y + blockIdx.y * blockDim.y; // Global j
 
@@ -206,8 +267,9 @@ void cuda_log(int a_rows, int a_cols, double* a, double* b) {
     b[i*a_cols + j] = log(a[i*a_cols + j]);
 }
 
+template <typename dtype>
 __global__
-void cuda_exp(int a_rows, int a_cols, double* a, double* b) {
+void cuda_exp(int a_rows, int a_cols, dtype* a, dtype* b) {
     int i = threadIdx.x + blockIdx.x * blockDim.x; // Global i
     int j = threadIdx.y + blockIdx.y * blockDim.y; // Global j
 
@@ -218,8 +280,30 @@ void cuda_exp(int a_rows, int a_cols, double* a, double* b) {
     b[i*a_cols + j] = exp(a[i*a_cols + j]);
 }
 
+
+template <typename dtype>
 __global__
-void relu_fwd(int a_rows, int a_cols, double* a, double* b) {
+void argmax(int a_rows, int a_cols, dtype* a, int* b) {
+    int i = threadIdx.x + blockIdx.x * blockDim.x; // Global i
+
+    // Ensure i not larger than respective array
+    if ((i >= a_rows)) {
+        return;
+    }
+
+    int max = 0;
+    for (int j = 1; j < a_cols; ++j) {
+        if (a[i*a_cols + max] < a[i*a_cols + j]) {
+            max = j;
+        }
+    }
+    b[i] = max;
+}
+
+
+template <typename dtype>
+__global__
+void relu_fwd(int a_rows, int a_cols, dtype* a, dtype* b) {
     int i = threadIdx.x + blockIdx.x * blockDim.x; // Global i
     int j = threadIdx.y + blockIdx.y * blockDim.y; // Global j
 

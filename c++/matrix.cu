@@ -122,6 +122,10 @@ inline Matrix<double, double*>::Matrix(int rows, int cols, double value):
 template<>
 inline Matrix<double, double*>::~Matrix() {}
 
+
+template<>
+inline Matrix<int, int*>::~Matrix() {}
+
 /* Matrix<dtype>::set_matrix()
 * -----
 * Copies the update array to the device via cudaMemCpy. The
@@ -133,6 +137,7 @@ template <>
 inline void Matrix<double, double*>::set_matrix(double* update) {
 	cuda::checkError(cudaMemcpy(matrix, update, sizeof(double) * (rows * cols), cudaMemcpyHostToDevice));
 }
+
 
 /* Matrix<dtype>::get_matrix()
 * -----
@@ -148,6 +153,7 @@ inline void Matrix<double, double*>::get_matrix(Matrix<double>& dest) {
     cuda::checkError(cudaMemcpy(&(dest[0]), matrix, sizeof(double) * (rows * cols), cudaMemcpyDeviceToHost));
 }
 
+
 /* Matrix<dtype>::get_idx()
 * -----
 * Getter for the a single element in vytpe
@@ -158,6 +164,69 @@ inline double Matrix<double, double*>::get_idx(int i) {
 	cuda::checkError(cudaMemcpy(&value, matrix, sizeof(double), cudaMemcpyDeviceToHost));
     return value;
 }
+
+/* Matrix<double, double*>::Matrix()
+* -----
+* Initiliases a Matrix object with the respective shape. 
+* 
+* Matrix<double, double*> is a wrapper for a double* stored
+* on a CUDA device. This is for convience to limit the passing 
+* of rows, cols through every function that required it.
+*
+* @rows: the number of rows the matrix should have
+* @cols: the number of cols the matrix should have
+* @value: the value to fill the matrix, defaults to 0.
+*/
+template<>
+inline Matrix<int, int*>::Matrix(int rows, int cols, int value): 
+		rows(rows), cols(cols) {
+	cuda::checkError(cudaMalloc(&matrix, sizeof(int) * (rows * cols)));
+	// For some readon cudaMemset doesn't work... have to do the slower method of setting...
+	std::vector<int> in(rows*cols, value);
+	cuda::checkError(cudaMemcpy(matrix, &(in[0]), sizeof(int) * (rows * cols), cudaMemcpyHostToDevice));
+	//cuda::checkError(cudaMemset(matrix, value, sizeof(double) * (rows * cols)));
+}
+
+/* Matrix<dtype>::set_matrix()
+* -----
+* Copies the update array to the device via cudaMemCpy. The
+* num of elements copied is rows * cols of this matrix.
+* 
+* @update: the array to copy to the device.
+*/
+template <>
+inline void Matrix<int, int*>::set_matrix(int* update) {
+	cuda::checkError(cudaMemcpy(matrix, update, sizeof(int) * (rows * cols), cudaMemcpyHostToDevice));
+}
+
+
+/* Matrix<dtype>::get_matrix()
+* -----
+* Returns the array from device to host. Copies array from
+* underlying matrix, to passed array dest. 
+* Caller is responsible for memory management.
+*
+* @dest: the array where the underlying array from device
+* 	will be copied too.
+*/
+template <>
+inline void Matrix<int, int*>::get_matrix(Matrix<int>& dest) {
+    cuda::checkError(cudaMemcpy(&(dest[0]), matrix, sizeof(int) * (rows * cols), cudaMemcpyDeviceToHost));
+}
+
+
+/* Matrix<dtype>::get_idx()
+* -----
+* Getter for the a single element in vytpe
+*/
+template <>
+inline int Matrix<int, int*>::get_idx(int i) {
+	int value = 0;
+	cuda::checkError(cudaMemcpy(&value, matrix, sizeof(int), cudaMemcpyDeviceToHost));
+    return value;
+}
+
+
 
 /* Matrix<dtype>::copy()
 // 
@@ -476,11 +545,10 @@ Matrix<dtype> division(Matrix<dtype> a, Matrix<dtype> b) {
 *
 * Returns: a new matrix of a == b with (a.rows, a.cols).
 */
-template <typename dtype> 
-Matrix<dtype> equals(Matrix<dtype> a, Matrix<dtype> b) {
+Matrix<int> equals(Matrix<int> a, Matrix<int> b) {
     // This is only defined for when both inputs are Matrix<int>
     // Can also utlizie |x - y| < EPISLON. 
-    return matrix_general(a, b, [](dtype x, dtype y){
+    return matrix_general(a, b, [](int x, int y){
 	return x == y;
     });
 }
@@ -598,10 +666,10 @@ int loop_case(int arows, int acols, int brows, int bcols) {
 * 		Will be of shape (a.rows, b.cols)
 */
 template <typename dtype>
-Matrix<dtype, double*> dot(Matrix<dtype, double*> a, Matrix<dtype, double*> b) {
+Matrix<dtype, dtype*> dot(Matrix<dtype, dtype*> a, Matrix<dtype, dtype*> b) {
     // a should be inputs
     // b should be weights
-    Matrix<dtype, double*> out(a.rows, b.cols);
+    Matrix<dtype, dtype*> out(a.rows, b.cols);
 	int threads = 32;
 	dim3 block(threads, threads);
     dim3 grid((a.rows+threads-1)/threads, (b.cols+threads-1)/threads);
@@ -611,8 +679,8 @@ Matrix<dtype, double*> dot(Matrix<dtype, double*> a, Matrix<dtype, double*> b) {
 
 
 template <typename dtype>
-Matrix<dtype, double*> max(Matrix<dtype, double*> a) {
-	Matrix<dtype, double*> out(a.rows, 1, (dtype) -INT_MAX);
+Matrix<dtype, dtype*> max(Matrix<dtype, dtype*> a) {
+	Matrix<dtype, dtype*> out(a.rows, 1, (dtype) -INT_MAX);
 	int threads = 1024;
 	int blocks = (a.rows+threads-1)/threads;
 	cuda::max<<<blocks, threads>>>(a.rows, a.cols, a.get_matrix(), out.get_matrix());
@@ -620,28 +688,28 @@ Matrix<dtype, double*> max(Matrix<dtype, double*> a) {
 }
 
 template <typename dtype>
-Matrix<dtype, double*> sum(Matrix<dtype, double*> a, int axis, bool keepdims) {
+Matrix<dtype, dtype*> sum(Matrix<dtype, dtype*> a, int axis, bool keepdims) {
 	int threads = 1024;
 	if (keepdims) {
 		if (axis) {
-			Matrix<dtype, double*> out(a.rows, 1); 
+			Matrix<dtype, dtype*> out(a.rows, 1); 
 			int blocks = (a.rows+threads-1)/threads;
 			cuda::sum_keepdims_1<<<blocks, threads>>>(a.rows, a.cols, a.get_matrix(), out.get_matrix());
 			return out;
 		} else {
-			Matrix<dtype, double*> out(1, a.cols);
+			Matrix<dtype, dtype*> out(1, a.cols);
 			int blocks = (a.cols+threads-1)/threads;
 			cuda::sum_keepdims_0<<<blocks, threads>>>(a.rows, a.cols, a.get_matrix(), out.get_matrix());
 			return out;
 		}
     } else {
 		int blocks = (a.cols*a.rows + threads - 1) / threads;
-		Matrix<dtype, double*> out(1, blocks);
-		cuda::sum_reduce<<<blocks, threads, sizeof(double) * threads>>>(a.rows*a.cols, a.get_matrix(), out.get_matrix());
+		Matrix<dtype, dtype*> out(1, blocks);
+		cuda::sum_reduce<<<blocks, threads, sizeof(dtype) * threads>>>(a.rows*a.cols, a.get_matrix(), out.get_matrix());
 		while (blocks > 1) {
 			// Largest N in current dataset is 1000, so this will never get called THIS MAY NOT WORK!!!. 
 			blocks = (out.cols + threads - 1) / threads;
-			cuda::sum_reduce<<<blocks, threads,  sizeof(double) * threads>>>(out.cols, out.get_matrix(), out.get_matrix());
+			cuda::sum_reduce<<<blocks, threads,  sizeof(dtype) * threads>>>(out.cols, out.get_matrix(), out.get_matrix());
 			out.cols = blocks;
 		}
 		return out;
@@ -649,13 +717,13 @@ Matrix<dtype, double*> sum(Matrix<dtype, double*> a, int axis, bool keepdims) {
 }
 
 template <typename dtype>
-Matrix<dtype, double*> transpose(Matrix<dtype, double*> a) {
+Matrix<dtype, dtype*> transpose(Matrix<dtype, dtype*> a) {
 	return a;
 }
 
 template <typename dtype>
-Matrix<dtype, double*> add(Matrix<dtype, double*> a, Matrix<dtype, double*> b) {
-	Matrix<dtype, double*> out(a.rows, a.cols); 
+Matrix<dtype, dtype*> add(Matrix<dtype, dtype*> a, Matrix<dtype, dtype*> b) {
+	Matrix<dtype, dtype*> out(a.rows, a.cols); 
 	int threads = 32;
 	dim3 block(threads, threads);
 	dim3 grid((a.rows+threads-1)/threads, (a.cols+threads-1)/threads);
@@ -665,8 +733,8 @@ Matrix<dtype, double*> add(Matrix<dtype, double*> a, Matrix<dtype, double*> b) {
 }
 
 template <typename dtype>
-Matrix<dtype, double*> subtract(Matrix<dtype, double*> a, Matrix<dtype, double*> b) {
-	Matrix<dtype, double*> out(a.rows, a.cols); 
+Matrix<dtype, dtype*> subtract(Matrix<dtype, dtype*> a, Matrix<dtype, dtype*> b) {
+	Matrix<dtype, dtype*> out(a.rows, a.cols); 
 	int threads = 32;
 	dim3 block(threads, threads);
 	dim3 grid((a.rows+threads-1)/threads, (a.cols+threads-1)/threads);
@@ -676,8 +744,8 @@ Matrix<dtype, double*> subtract(Matrix<dtype, double*> a, Matrix<dtype, double*>
 }
 
 template <typename dtype>
-Matrix<dtype, double*> mul(Matrix<dtype, double*> a, Matrix<dtype, double*> b) {
-	Matrix<dtype, double*> out(a.rows, a.cols); 
+Matrix<dtype, dtype*> mul(Matrix<dtype, dtype*> a, Matrix<dtype, dtype*> b) {
+	Matrix<dtype, dtype*> out(a.rows, a.cols); 
 	int threads = 32;
 	dim3 block(threads, threads);
 	dim3 grid((a.rows+threads-1)/threads, (a.cols+threads-1)/threads);
@@ -687,8 +755,8 @@ Matrix<dtype, double*> mul(Matrix<dtype, double*> a, Matrix<dtype, double*> b) {
 }
 
 template <typename dtype>
-Matrix<dtype, double*> division(Matrix<dtype, double*> a, Matrix<dtype, double*> b) {
-	Matrix<dtype, double*> out(a.rows, a.cols); 
+Matrix<dtype, dtype*> division(Matrix<dtype, dtype*> a, Matrix<dtype, dtype*> b) {
+	Matrix<dtype, dtype*> out(a.rows, a.cols); 
 	int threads = 32;
 	dim3 block(threads, threads);
 	dim3 grid((a.rows+threads-1)/threads, (a.cols+threads-1)/threads);
@@ -697,14 +765,19 @@ Matrix<dtype, double*> division(Matrix<dtype, double*> a, Matrix<dtype, double*>
 	return out;
 }
 
-template <typename dtype>
-Matrix<dtype, double*> equals(Matrix<dtype, double*> a, Matrix<dtype, double*> b) {
-	return a;
+Matrix<int, int*> equals(Matrix<int, int*> a, Matrix<int, int*> b) {
+	Matrix<int, int*> out(a.rows, a.cols); 
+	int threads = 32;
+	dim3 block(threads, threads);
+	dim3 grid((a.rows+threads-1)/threads, (a.cols+threads-1)/threads);
+	int loop = loop_case(a.rows, a.cols, b.rows, b.cols);
+	cuda::cuda_equals<<<grid, block>>>(a.rows, a.cols, loop, a.get_matrix(), b.get_matrix(), out.get_matrix());
+	return out;
 }
 
 template <typename dtype>
-Matrix<dtype, double*> exp(Matrix<dtype, double*> a) {
-	Matrix<dtype, double*> out(a.rows, a.cols); 
+Matrix<dtype, dtype*> exp(Matrix<dtype, dtype*> a) {
+	Matrix<dtype, dtype*> out(a.rows, a.cols); 
 	int threads = 32;
 	dim3 block(threads, threads);
 	dim3 grid((a.rows+threads-1)/threads, (a.cols+threads-1)/threads);
@@ -713,8 +786,8 @@ Matrix<dtype, double*> exp(Matrix<dtype, double*> a) {
 }
 
 template <typename dtype>
-Matrix<dtype, double*> log(Matrix<dtype, double*> a) {
-	Matrix<dtype, double*> out(a.rows, a.cols); 
+Matrix<dtype, dtype*> log(Matrix<dtype, dtype*> a) {
+	Matrix<dtype, dtype*> out(a.rows, a.cols); 
 	int threads = 32;
 	dim3 block(threads, threads);
 	dim3 grid((a.rows+threads-1)/threads, (a.cols+threads-1)/threads);
@@ -723,8 +796,8 @@ Matrix<dtype, double*> log(Matrix<dtype, double*> a) {
 }
 
 template <typename dtype>
-Matrix<dtype, double*> mul_const(Matrix<dtype, double*> a, dtype b) {
-	Matrix<dtype, double*> out(a.rows, a.cols); 
+Matrix<dtype, dtype*> mul_const(Matrix<dtype, dtype*> a, dtype b) {
+	Matrix<dtype, dtype*> out(a.rows, a.cols); 
 	int threads = 32;
 	dim3 block(threads, threads);
 	dim3 grid((a.rows+threads-1)/threads, (a.cols+threads-1)/threads);
@@ -733,13 +806,17 @@ Matrix<dtype, double*> mul_const(Matrix<dtype, double*> a, dtype b) {
 }
 
 template <typename dtype>
-Matrix<dtype, double*> argmax(Matrix<dtype, double*> a, Matrix<dtype, double*> b) {
-	return a;
+Matrix<int, int*> argmax(Matrix<dtype, dtype*> a) {
+	Matrix<int, int*> out(a.rows, 1);
+	int threads = 1024;
+	int blocks = (a.rows+threads-1)/threads;
+	cuda::argmax<<<blocks, threads>>>(a.rows, a.cols, a.get_matrix(), out.get_matrix());
+	return out;
 }
 
 template <typename dtype>
-Matrix<dtype, double*> relu_fwd(Matrix<dtype, double*> a) {
-	Matrix<dtype, double*> out(a.rows, a.cols); 
+Matrix<dtype, dtype*> relu_fwd(Matrix<dtype, dtype*> a) {
+	Matrix<dtype, dtype*> out(a.rows, a.cols); 
 	int threads = 32;
 	dim3 block(threads, threads);
 	dim3 grid((a.rows+threads-1)/threads, (a.cols+threads-1)/threads);
