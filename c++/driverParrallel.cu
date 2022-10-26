@@ -72,39 +72,17 @@ int main(int argc, char *argv[]) {
     Matrix<double> y_test_s(N - train_size, 2);
 	handle_input(x_train_s, y_train_s, x_test_s, y_test_s, N);
 
-	// Construct our network
+	// double*
     Dense<double, double*> layer1(2, 16, false);
     ReLU<double, double*> layer2;
     Dense<double, double*> layer3(16, 2, false);
 	SoftmaxCrossEntropy<double, double*> layer4;
-	// Softmax<double, double*> layer4;
-	// CategoricalCrossentropy<double, double*> layer5;
 
 	// Serial
 	Dense<double> layer1_s(2, 16, false);
     ReLU<double> layer2_s;
     Dense<double> layer3_s(16, 2, false);
 	SoftmaxCrossEntropy<double> layer4_s;
-	// Softmax<double> layer4_s;
-	// CategoricalCrossentropy<double> layer5_s;
-	
-	// --------------- Tests -------------------------
-	// std::cout << "CUDA IMPLEMENTATION" << std::endl;
-	// print(dot(x_train, layer1.weights));
-	// print(layer1.biases);
-	// print(add(dot(x_train, layer1.weights), layer1.biases));
-
-	// // print(layer1.weights);
-	// // print(x_train);
-	// // print(dot(x_train, layer1.weights));
-	// std::cout << "SERIAL IMPLEMENTATION" << std::endl;
-	// print(dot(x_train_s, layer1_s.weights));
-	// print(layer1_s.biases);
-	// print(add(dot(x_train_s, layer1_s.weights), layer1_s.biases));
-
-	// --------------- Tests -------------------------
-	// return 0;
-
 
 
 	std::cout << "SERIAL IMPLEMENTATION" << std::endl;
@@ -114,25 +92,30 @@ int main(int argc, char *argv[]) {
 	Matrix<double> out4_s = layer4_s.forward(y_train_s, out3_s); 
 	double acc_s = metric::accuracy(y_train_s, out4_s);
 	std::cout << "loss: " << layer4_s.get_loss() << " acc: " << acc_s << std::endl;
-	// Matrix<double> out4_s = layer4_s.forward(out3_s);
-	// double loss_s = layer5_s.calculateLoss(y_train_s, out4_s);
+	Matrix<double> back4_s = layer4_s.backward(out4_s, y_train_s);
+	// Matrix<double> back3_s = layer3.backward(out2_s, back4_s);
+	// print(back3_s);
+	// flush(std::cout);
+	// Matrix<double> back2_s = layer2.backward(out1_s, back3_s);
+	// Matrix<double> back1_s = layer1.backward(x_train_s, back2_s);
+	// print(back4_s);
 
 	std::cout << "CUDA IMPLEMENTATION" << std::endl;
 	Matrix<double, double*> out1 = layer1.forward(x_train);
 	Matrix<double, double*> out2 = layer2.forward(out1);
-	Matrix<double, double*> out3 = layer3.forward(out2); 
-	Matrix<double, double*> out4= layer4.forward(y_train, out3); 
+	Matrix<double, double*> out3 = layer3.forward(out2);
+	Matrix<double, double*> out4 = layer4.forward(y_train, out3);
+	double loss = layer4.get_loss();
 	double acc = metric::accuracy(y_train, out4);
-	std::cout << "loss: " << layer4.get_loss() << " acc: " << acc << std::endl;
-	// double acc = metric::accuracy<double, double*>(y_train, out4);
-	// std::cout << "acc: " << acc << std::endl;
-	// Matrix<double, double*> out4 = layer4.forward(out3);
-	// double loss = layer5.calculateLoss(y_train, out4);
+	std::cout << "loss: " << loss << " acc: " << acc << std::endl;
+	Matrix<double, double*> back4 = layer4.backward(out4, y_train);
+	// Matrix<double, double*> back3 = layer3.backward(out2, back4);
+	// print(back3);
+	// flush(std::cout);
 
-	// Matrix<double> back4 = layer4.backward(out4, y_train);
-	// Matrix<double> back3 = layer3.backward(out2, back4);
-	// Matrix<double> back2 = layer2.backward(out1, back3);
-	// Matrix<double> back1 = layer1.backward(x_train, back2);
+	// Matrix<double, double*> back2 = layer2.backward(out1, back3);
+	// Matrix<double, double*> back1 = layer1.backward(x_train, back2);
+
 
 
 
@@ -147,7 +130,7 @@ int main(int argc, char *argv[]) {
 	// flush(std::cout);
 
     //mul_const(log(sum(mul(y_true, y_pred), 1, true)), (double) -1.0);
-	// std::cout << "CUDA IMPLEMENTATION" << std::endl;
+	// std::cout << "double* IMPLEMENTATION" << std::endl;
 	// flush(std::cout);
 	// // CategoricalCross_output is correct
 	// Matrix<double, double*> CategoricalCross = mul_const(log(sum(mul(y_train, out4), 1, true)), (double) -1.0);
@@ -169,15 +152,15 @@ int main(int argc, char *argv[]) {
 	// // START Test code -----------------
 	// Dense layer1(2, 4);
 	
-	// // Create cuda matrices
+	// // Create double* matrices
 	// Matrix<double, double*> a(train_size, 2);
 	// Matrix<double, double*> b(2, 4);
 	// a.set_matrix((double*) &(x_train[0]));
 	// b.set_matrix((double*) &(layer1.weights[0]));
 
-	// std::cout << "Cuda Matrix dot(a,b)" << std::endl;
-	// Matrix<double, double*> cuda_out = dot(a, b);
-	// print(cuda_out);
+	// std::cout << "double* Matrix dot(a,b)" << std::endl;
+	// Matrix<double, double*> double*_out = dot(a, b);
+	// print(double*_out);
 	// std::cout << "Serial Matrix dot(a,b)" << std::endl;
 	// Matrix<double> serial_out = dot(x_train, layer1.weights);
 	// print(serial_out);

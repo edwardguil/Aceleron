@@ -9,6 +9,7 @@
 
 namespace matrix {
 
+typedef double cuda;
 /* Matrix<dtype>::Matrix()
 * -----
 * Initiliases a Matrix object with the respective shape. 
@@ -271,9 +272,10 @@ void print(Matrix<dtype> matrix) {
 *
 * @matrix: the matrix to be printed
 */
-inline void print(Matrix<double, double*> matrix) {
-	double* data = (double*) malloc(sizeof(double) * matrix.size());
-	cuda::checkError(cudaMemcpy(data, matrix.get_matrix(), sizeof(double) * matrix.size(), cudaMemcpyDeviceToHost));
+template <typename dtype>
+inline void print(Matrix<dtype, dtype*> matrix) {
+	dtype* data = (dtype*) malloc(sizeof(dtype) * matrix.size());
+	cuda::checkError(cudaMemcpy(data, matrix.get_matrix(), sizeof(dtype) * matrix.size(), cudaMemcpyDeviceToHost));
     char* temp;
     std::cout << "[";
     for(int i = 0; i < matrix.rows; i++) {
@@ -718,7 +720,12 @@ Matrix<dtype, dtype*> sum(Matrix<dtype, dtype*> a, int axis, bool keepdims) {
 
 template <typename dtype>
 Matrix<dtype, dtype*> transpose(Matrix<dtype, dtype*> a) {
-	return a;
+	Matrix<dtype, dtype*> out(a.cols, a.rows); 
+	int threads = 32;
+	dim3 block(threads, threads);
+	dim3 grid((a.rows+threads-1)/threads, (a.cols+threads-1)/threads);
+	cuda::transpose<<<grid, block>>>(a.rows, a.cols, a.get_matrix(), out.get_matrix());
+	return out;
 }
 
 template <typename dtype>
@@ -823,5 +830,25 @@ Matrix<dtype, dtype*> relu_fwd(Matrix<dtype, dtype*> a) {
 	cuda::relu_fwd<<<grid, block>>>(a.rows, a.cols, a.get_matrix(), out.get_matrix());
 	return out;
 }
+
+template <typename dtype>
+Matrix<dtype, dtype*> relu_bwd(Matrix<dtype, dtype*> a, Matrix<dtype, dtype*> b) {
+	Matrix<dtype, dtype*> out(a.rows, a.cols); 
+	int threads = 32;
+	dim3 block(threads, threads);
+	dim3 grid((a.rows+threads-1)/threads, (a.cols+threads-1)/threads);
+	cuda::relu_bwd<<<grid, block>>>(a.rows, a.cols, a.get_matrix(), b.get_matrix(), out.get_matrix());
+	return out;
+}
+
+template <typename dtype>
+Matrix<dtype, dtype*> softmax_bwd(Matrix<dtype, dtype*> a, Matrix<int, int*> b) {
+	Matrix<dtype, dtype*> out(a.rows, a.cols); 
+	int threads = 1024;
+	int blocks = (a.rows+threads-1)/threads;
+	cuda::softmax_bwd<<<blocks, threads>>>(a.rows, a.cols, a.get_matrix(), b.get_matrix(), a.get_matrix());
+	return a;
+}
+
 
 }

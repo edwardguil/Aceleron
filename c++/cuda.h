@@ -29,6 +29,10 @@ void sum_reduce(int N, int* a, int* b);
 
 template <typename dtype>
 __global__
+void transpose(int a_rows, int a_cols, dtype* a, dtype* b);
+
+template <typename dtype>
+__global__
 void add(int a_rows, int a_cols, int loop, dtype* a, dtype* b, dtype* c);
 
 template <typename dtype>
@@ -66,7 +70,16 @@ template <typename dtype>
 __global__
 void relu_fwd(int a_rows, int a_cols, dtype* a, dtype* b);
 
+template <typename dtype>
+__global__
+void relu_bwd(int a_rows, int a_cols, dtype* a, dtype* b, dtype* c);
+
+template <typename dtype>
+__global__
+void softmax_bwd(int a_rows, int a_cols, dtype* a, int* b, dtype* c);
+
 }
+
 
 #include "cuda.cu"
 

@@ -134,6 +134,20 @@ void sum_reduce(int N, int* a, int* b) {
     }
 }
 
+template <typename dtype>
+__global__
+void transpose(int a_rows, int a_cols, dtype* a, dtype* b) {
+    int i = threadIdx.x + blockIdx.x * blockDim.x; // Global i
+    int j = threadIdx.y + blockIdx.y * blockDim.y; // Global j
+
+    // Ensure i/j not larger than respective array
+    if ((i >= a_rows) || (j >= a_cols)) {
+        return;
+    }
+
+    b[j*a_rows + i] = a[i*a_cols + j];
+}
+
 
 template <typename dtype>
 __global__
@@ -248,7 +262,7 @@ void mul_const(int a_rows, int a_cols, dtype value, dtype* a, dtype* b) {
     int j = threadIdx.y + blockIdx.y * blockDim.y; // Global j
 
     // Ensure i/j not larger than respective array
-    if ((i >= a_rows) || (j >= a_rows)) {
+    if ((i >= a_rows) || (j >= a_cols)) {
         return;
     }
     b[i*a_cols + j] = a[i*a_cols + j] * value;
@@ -261,7 +275,7 @@ void cuda_log(int a_rows, int a_cols, dtype* a, dtype* b) {
     int j = threadIdx.y + blockIdx.y * blockDim.y; // Global j
 
     // Ensure i/j not larger than respective array
-    if ((i >= a_rows) || (j >= a_rows)) {
+    if ((i >= a_rows) || (j >= a_cols)) {
         return;
     }
     b[i*a_cols + j] = log(a[i*a_cols + j]);
@@ -274,7 +288,7 @@ void cuda_exp(int a_rows, int a_cols, dtype* a, dtype* b) {
     int j = threadIdx.y + blockIdx.y * blockDim.y; // Global j
 
     // Ensure i/j not larger than respective array
-    if ((i >= a_rows) || (j >= a_rows)) {
+    if ((i >= a_rows) || (j >= a_cols)) {
         return;
     }
     b[i*a_cols + j] = exp(a[i*a_cols + j]);
@@ -308,7 +322,7 @@ void relu_fwd(int a_rows, int a_cols, dtype* a, dtype* b) {
     int j = threadIdx.y + blockIdx.y * blockDim.y; // Global j
 
     // Ensure i/j not larger than respective array
-    if ((i >= a_rows) || (j >= a_rows)) {
+    if ((i >= a_rows) || (j >= a_cols)) {
         return;
     }
 
@@ -317,6 +331,36 @@ void relu_fwd(int a_rows, int a_cols, dtype* a, dtype* b) {
     } else {
         b[i*a_cols + j] = a[i*a_cols + j];
     }
+}
+
+
+template <typename dtype>
+__global__
+void relu_bwd(int a_rows, int a_cols, dtype* a, dtype* b, dtype* c) {
+    int i = threadIdx.x + blockIdx.x * blockDim.x; // Global i
+    int j = threadIdx.y + blockIdx.y * blockDim.y; // Global j
+
+    // Ensure i/j not larger than respective array
+    if ((i >= a_rows) || (j >= a_cols)) {
+        return;
+    }
+
+    if (a[i*a_cols + j] <= 0) {
+        c[i*a_cols + j] = 0;
+    } else {
+        c[i*a_cols + j] = b[i*a_cols + j];
+    }
+}
+
+template <typename dtype>
+__global__
+void softmax_bwd(int a_rows, int a_cols, dtype* a, int* b, dtype* c) {
+    int i = threadIdx.x + blockIdx.x * blockDim.x; // Global i
+    // Ensure i not larger than respective array
+    if ((i >= a_rows)) {
+        return;
+    }
+    c[i*a_cols + b[i]] = a[i*a_cols + b[i]] - 1;
 }
 
 }

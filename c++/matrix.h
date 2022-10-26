@@ -47,6 +47,9 @@ Matrix<dtype> transpose(Matrix<dtype> input);
 template <typename dtype, class Operator>
 Matrix<dtype> general(Matrix<dtype> a, Matrix<dtype> b, Operator op);
 
+template <typename dtype>
+Matrix<dtype, dtype*> transpose(Matrix<dtype, dtype*> a);
+
 template <typename dtype> 
 Matrix<dtype> add(Matrix<dtype> a, Matrix<dtype> b);
 
@@ -74,8 +77,10 @@ Matrix<int> argmax(Matrix<dtype> a);
 template <typename dtype>
 Matrix<dtype> relu_fwd(Matrix<dtype> a);
 
-}
+template <typename dtype>
+Matrix<dtype, dtype*> relu_bwd(Matrix<dtype, dtype*> a, Matrix<dtype, dtype*> b);
 
+}
 #include "matrix.cu"
 
 #endif

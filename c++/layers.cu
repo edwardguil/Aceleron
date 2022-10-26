@@ -221,6 +221,24 @@ matrix::Matrix<dtype, vtype> ReLU<dtype, vtype>::backward(matrix::Matrix<dtype, 
     return dinput;
 }
 
+/* ReLU::backward()
+* -----
+* Computes the partial derivate w.r.t the relus output, utilising 
+* the matrix of derivatives. 
+*
+* @inputs: the input that was passed through matrix in the previous
+*       forward pass
+* @dinput: the derivative matrix passed from the next layer
+*
+* Returns: the partial derivative w.r.t the relus output
+*/
+template<>
+matrix::Matrix<double, double*> ReLU<double, double*>::backward(matrix::Matrix<double, double*>& inputs, 
+	    matrix::Matrix<double, double*>& dinput) {
+    return matrix::relu_bwd(inputs, dinput);
+}
+
+
 // ------------- SOFTMAX -------------- //
 template<typename dtype, typename vtype>
 Softmax<dtype, vtype>::Softmax(void) {}
@@ -238,7 +256,6 @@ Softmax<dtype, vtype>::Softmax(void) {}
 */
 template<typename dtype, typename vtype>
 matrix::Matrix<dtype, vtype> Softmax<dtype, vtype>::forward(matrix::Matrix<dtype, vtype>& input) {
-    
     matrix::Matrix<dtype, vtype> temp = matrix::exp(matrix::subtract(input, matrix::max(input)));
     return matrix::division(temp, matrix::sum(temp, 1, true));
 }
@@ -308,6 +325,24 @@ matrix::Matrix<dtype, vtype> SoftmaxCrossEntropy<dtype, vtype>::backward(matrix:
     }
     matrix::Matrix<dtype, vtype> temp(1, 1, dinput.rows);
     return matrix::division(dinput, temp);
+}
+
+/* SoftmaxCrossEntropy::backward()
+* -----
+* Computes the partial derivate w.r.t output of this layer.
+*
+* @dinput: the output from the forward pass of this layer.
+* @y_true: the class labels for the input
+*
+* Returns: the partial derivative w.r.t the layers output
+*/
+template<>
+matrix::Matrix<double, double*> SoftmaxCrossEntropy<double, double*>::backward(matrix::Matrix<double, double*>& dinput, 
+	    matrix::Matrix<double, double*>& y_true) {
+    // Expects y_true to be one hot encoded
+    matrix::Matrix<int, int*> converted = matrix::argmax(y_true);
+    matrix::Matrix<double, double*> temp(1, 1, dinput.rows);
+    return matrix::division(matrix::softmax_bwd(dinput, converted), temp);
 }
 
 /* SoftmaxCrossEntropy::get_loss()
