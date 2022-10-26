@@ -58,6 +58,20 @@ int main(int argc, char *argv[]) {
 	//std::cout << "N: " << N << std::endl;
 	int train_size = N * 0.80;
 
+
+    // Matrix<double> x_train_s(train_size, 2);
+    // Matrix<double> y_train_s(train_size, 2);
+    // Matrix<double> x_test_s(N - train_size, 2);
+    // Matrix<double> y_test_s(N - train_size, 2);
+	// handle_input(x_train_s, y_train_s, x_test_s, y_test_s, N);
+	// // Serial
+	// Dense<double> layer1_s(2, 16, false);
+    // ReLU<double> layer2_s;
+    // Dense<double> layer3_s(16, 2, false);
+	// SoftmaxCrossEntropy<double> layer4_s;
+	// optimizer::SGD<double> sgd_s(1.0, 0.001);
+
+
 	// Define the training and testing Matrixes
     Matrix<double, double*> x_train(train_size, 2);
     Matrix<double, double*> y_train(train_size, 2);
@@ -66,149 +80,88 @@ int main(int argc, char *argv[]) {
 	// This function allocates the data to these matrices
 	handle_input(x_train, y_train, x_test, y_test, N);
 
-    Matrix<double> x_train_s(train_size, 2);
-    Matrix<double> y_train_s(train_size, 2);
-    Matrix<double> x_test_s(N - train_size, 2);
-    Matrix<double> y_test_s(N - train_size, 2);
-	handle_input(x_train_s, y_train_s, x_test_s, y_test_s, N);
 
-	// double*
-    Dense<double, double*> layer1(2, 16, false);
+	// Cuda
+    Dense<double, double*> layer1(2, 16);
     ReLU<double, double*> layer2;
-    Dense<double, double*> layer3(16, 2, false);
+    Dense<double, double*> layer3(16, 2);
 	SoftmaxCrossEntropy<double, double*> layer4;
-
-	// Serial
-	Dense<double> layer1_s(2, 16, false);
-    ReLU<double> layer2_s;
-    Dense<double> layer3_s(16, 2, false);
-	SoftmaxCrossEntropy<double> layer4_s;
-
-
-	std::cout << "SERIAL IMPLEMENTATION" << std::endl;
-	Matrix<double> out1_s = layer1_s.forward(x_train_s);
-	Matrix<double> out2_s = layer2_s.forward(out1_s);
-	Matrix<double> out3_s = layer3_s.forward(out2_s); 
-	Matrix<double> out4_s = layer4_s.forward(y_train_s, out3_s); 
-	double acc_s = metric::accuracy(y_train_s, out4_s);
-	std::cout << "loss: " << layer4_s.get_loss() << " acc: " << acc_s << std::endl;
-	Matrix<double> back4_s = layer4_s.backward(out4_s, y_train_s);
-	// Matrix<double> back3_s = layer3.backward(out2_s, back4_s);
-	// print(back3_s);
-	// flush(std::cout);
-	// Matrix<double> back2_s = layer2.backward(out1_s, back3_s);
-	// Matrix<double> back1_s = layer1.backward(x_train_s, back2_s);
-	// print(back4_s);
-
-	std::cout << "CUDA IMPLEMENTATION" << std::endl;
-	Matrix<double, double*> out1 = layer1.forward(x_train);
-	Matrix<double, double*> out2 = layer2.forward(out1);
-	Matrix<double, double*> out3 = layer3.forward(out2);
-	Matrix<double, double*> out4 = layer4.forward(y_train, out3);
-	double loss = layer4.get_loss();
-	double acc = metric::accuracy(y_train, out4);
-	std::cout << "loss: " << loss << " acc: " << acc << std::endl;
-	Matrix<double, double*> back4 = layer4.backward(out4, y_train);
-	// Matrix<double, double*> back3 = layer3.backward(out2, back4);
-	// print(back3);
-	// flush(std::cout);
-
-	// Matrix<double, double*> back2 = layer2.backward(out1, back3);
-	// Matrix<double, double*> back1 = layer1.backward(x_train, back2);
-
-
-
-
-
+	optimizer::SGD<double, double*> sgd(1.0, 0.001);
 
 	// std::cout << "SERIAL IMPLEMENTATION" << std::endl;
-	// // CategoricalCross_s is correct
-	// Matrix<double> CategoricalCross_s = mul_const(log(sum(mul(y_train_s, out4_s), 1, true)), (double) -1.0);
-	// Matrix<double> summed_s = sum(CategoricalCross_s,  1, false);
-	// print(summed_s);
-	// std::cout << "Loss: " << summed_s.get_idx(0) << std::endl; 
+	// Matrix<double> out1_s = layer1_s.forward(x_train_s);
+	// Matrix<double> out2_s = layer2_s.forward(out1_s);
+	// Matrix<double> out3_s = layer3_s.forward(out2_s); 
+	// Matrix<double> out4_s = layer4_s.forward(y_train_s, out3_s); 
+	// double acc_s = metric::accuracy(y_train_s, out4_s);
+	// std::cout << "loss: " << layer4_s.get_loss() << " acc: " << acc_s << std::endl;
+	// Matrix<double> back4_s = layer4_s.backward(out4_s, y_train_s);
+	// Matrix<double> back3_s = layer3_s.backward(out2_s, back4_s);
+	// Matrix<double> back2_s = layer2_s.backward(out1_s, back3_s);
+	// Matrix<double> back1_s = layer1_s.backward(x_train_s, back2_s);
+	// sgd_s.pre_update();
+	// sgd_s.update(&layer3_s);
+	// sgd_s.update(&layer1_s);
+	// sgd_s.post_update();
+	// flush(std::cout);
+	// // print(back4_s);
+
+	// std::cout << "CUDA IMPLEMENTATION" << std::endl;
+	// Matrix<double, double*> out1 = layer1.forward(x_train);
+	// Matrix<double, double*> out2 = layer2.forward(out1);
+	// Matrix<double, double*> out3 = layer3.forward(out2);
+	// Matrix<double, double*> out4 = layer4.forward(y_train, out3);
+	// double loss = layer4.get_loss();
+	// double acc = metric::accuracy(y_train, out4);
+	// std::cout << "loss: " << loss << " acc: " << acc << std::endl;
+	// Matrix<double, double*> back4 = layer4.backward(out4, y_train);
+	// Matrix<double, double*> back3 = layer3.backward(out2, back4);
+	// Matrix<double, double*> back2 = layer2.backward(out1, back3);
+	// Matrix<double, double*> back1 = layer1.backward(x_train, back2);
+	// sgd.pre_update();
+	// sgd.update(&layer3);
+	// sgd.update(&layer1);
+	// sgd.post_update();
 	// flush(std::cout);
 
-    //mul_const(log(sum(mul(y_true, y_pred), 1, true)), (double) -1.0);
-	// std::cout << "double* IMPLEMENTATION" << std::endl;
-	// flush(std::cout);
-	// // CategoricalCross_output is correct
-	// Matrix<double, double*> CategoricalCross = mul_const(log(sum(mul(y_train, out4), 1, true)), (double) -1.0);
-	// Matrix<double, double*> summed = sum(CategoricalCross,  1, false);
-	// print(summed);
-	// std::cout << "Loss: " << summed.get_idx(0) << std::endl; 
-	// flush(std::cout);
+    for (int i = 0; i < 2001; i++) {
+		Matrix<double, double*> out1 = layer1.forward(x_train);
+		Matrix<double, double*> out2 = layer2.forward(out1);
+		Matrix<double, double*> out3 = layer3.forward(out2);
+		Matrix<double, double*> out4 = layer4.forward(y_train, out3);
+		double loss = layer4.get_loss();
+		double acc = metric::accuracy(y_train, out4);
 
-
-	// flush(std::cout);
-	// print(mul(y_train_s, out4_s));
-	return 0;
-
-	//print(max(out3));
-	//print(out4);
-	// std::cout << "decltype(i) is " << type_name<decltype(layer2)>() << '\n';
-	// std::cout << "decltype(i) is " << type_name<decltype(layer3)>() << '\n';
-	// std::cout << "decltype(i) is " << type_name<decltype(layer4)>() << '\n';
-	// // START Test code -----------------
-	// Dense layer1(2, 4);
-	
-	// // Create double* matrices
-	// Matrix<double, double*> a(train_size, 2);
-	// Matrix<double, double*> b(2, 4);
-	// a.set_matrix((double*) &(x_train[0]));
-	// b.set_matrix((double*) &(layer1.weights[0]));
-
-	// std::cout << "double* Matrix dot(a,b)" << std::endl;
-	// Matrix<double, double*> double*_out = dot(a, b);
-	// print(double*_out);
-	// std::cout << "Serial Matrix dot(a,b)" << std::endl;
-	// Matrix<double> serial_out = dot(x_train, layer1.weights);
-	// print(serial_out);
-
-	// return 0
-	// // END Test code -----------------------
-
-
-	// Main algorithimic loop
-    // for (int i = 0; i < 2001; i++) {
-
-	// 	Matrix<double> out1 = layer1.forward(x_train);
-	// 	Matrix<double> out2 = layer2.forward(out1);
-	// 	Matrix<double> out3 = layer3.forward(out2);
-	// 	Matrix<double> out4 = layer4.forward(out3, y_train);
-	// 	double loss = layer4.get_loss();
-	// 	double acc = metric::accuracy(y_train, out4);
-
-	// 	Matrix<double> back4 = layer4.backward(out4, y_train);
-	// 	Matrix<double> back3 = layer3.backward(out2, back4);
-	// 	Matrix<double> back2 = layer2.backward(out1, back3);
-	// 	Matrix<double> back1 = layer1.backward(x_train, back2);
+		Matrix<double, double*> back4 = layer4.backward(out4, y_train);
+		Matrix<double, double*> back3 = layer3.backward(out2, back4);
+		Matrix<double, double*> back2 = layer2.backward(out1, back3);
+		Matrix<double, double*> back1 = layer1.backward(x_train, back2);
 		
 		
-	// 	sgd.pre_update();
-	// 	sgd.update(&layer3);
-	// 	sgd.update(&layer1);
-	// 	sgd.post_update();
-	// 	if (i % 100 == 0) {
-	// 		// Let's test the network every 100 iterations
-	// 		Matrix<double> outtest1 = layer1.forward(x_test);
-	// 		Matrix<double> outtest2 = layer2.forward(outtest1);
-	// 		Matrix<double> outtest3 = layer3.forward(outtest2);
-	// 		Matrix<double> outtest4 = layer4.forward(outtest3, y_test);
-	// 		double losstest = layer4.get_loss();
-	// 		double acctest = metric::accuracy(y_test, outtest4);
+		sgd.pre_update();
+		sgd.update(&layer3);
+		sgd.update(&layer1);
+		sgd.post_update();
+		if (i % 100 == 0) {
+			// Let's test the network every 100 iterations
+			Matrix<double, double*> outtest1 = layer1.forward(x_test);
+			Matrix<double, double*> outtest2 = layer2.forward(outtest1);
+			Matrix<double, double*> outtest3 = layer3.forward(outtest2);
+			Matrix<double, double*> outtest4 = layer4.forward(outtest3, y_test);
+			double losstest = layer4.get_loss();
+			double acctest = metric::accuracy(y_test, outtest4);
 
-	// 		std::cout << "epoch: " << i;
-	// 		std::cout << ", acc: " << acc;
-	// 		std::cout << ", loss: " << loss;
-	// 		std::cout << ", acc_test: " << acctest;
-	// 		std::cout << ", loss_test: " << losstest;
-	// 		std::cout << ", lr: " << std::fixed << sgd.get_lr() << std::endl;
-	// 	}
+			std::cout << "epoch: " << i;
+			std::cout << ", acc: " << acc;
+			std::cout << ", loss: " << loss;
+			std::cout << ", acc_test: " << acctest;
+			std::cout << ", loss_test: " << losstest;
+			std::cout << ", lr: " << std::fixed << sgd.get_lr() << std::endl;
+		}
 
-    // }
+    }
 
-    // return 0;
+    return 0;
 }
 
 /* handle_input()
