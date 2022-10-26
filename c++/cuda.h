@@ -33,6 +33,9 @@ __global__
 void division(int a_rows, int a_cols, int loop, double* a, double* b, double* c);
 
 __global__
+void mul_const(int a_rows, int a_cols, double value, double* a, double* b);
+
+__global__
 void cuda_log(int a_rows, int a_cols, double* a, double* b);
 
 __global__

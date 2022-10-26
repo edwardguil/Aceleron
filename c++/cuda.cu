@@ -112,7 +112,7 @@ void add(int a_rows, int a_cols, int loop, double* a, double* b, double* c) {
     } else if (loop == 2) {
 		c[i*a_cols + j] = a[i*a_cols + j] + b[j];
     } else {
-        c[i*a_cols + j] = a[i*a_cols + j] + b[0*loop];  
+        c[i*a_cols + j] = a[i*a_cols + j] + b[i*loop];  
     } 
 }
 
@@ -132,7 +132,7 @@ void subtract(int a_rows, int a_cols, int loop, double* a, double* b, double* c)
     } else if (loop == 2) {
 		c[i*a_cols + j] = a[i*a_cols + j] - b[j];
     } else {
-        c[i*a_cols + j] = a[i*a_cols + j] - b[0*loop];  
+        c[i*a_cols + j] = a[i*a_cols + j] - b[i*loop];  
     } 
 }
 
@@ -152,7 +152,7 @@ void mul(int a_rows, int a_cols, int loop, double* a, double* b, double* c) {
     } else if (loop == 2) {
 		c[i*a_cols + j] = a[i*a_cols + j] * b[j];
     } else {
-        c[i*a_cols + j] = a[i*a_cols + j] * b[0*loop];  
+        c[i*a_cols + j] = a[i*a_cols + j] * b[i*loop];  
     } 
 }
 
@@ -172,8 +172,20 @@ void division(int a_rows, int a_cols, int loop, double* a, double* b, double* c)
     } else if (loop == 2) {
 		c[i*a_cols + j] = a[i*a_cols + j] / b[j];
     } else {
-        c[i*a_cols + j] = a[i*a_cols + j] / b[0*loop];  
+        c[i*a_cols + j] = a[i*a_cols + j] / b[i*loop];  
     } 
+}
+
+__global__
+void mul_const(int a_rows, int a_cols, double value, double* a, double* b) {
+    int i = threadIdx.x + blockIdx.x * blockDim.x; // Global i
+    int j = threadIdx.y + blockIdx.y * blockDim.y; // Global j
+
+    // Ensure i/j not larger than respective array
+    if ((i >= a_rows) || (j >= a_rows)) {
+        return;
+    }
+    b[i*a_cols + j] = a[i*a_cols + j] * value;
 }
 
 __global__

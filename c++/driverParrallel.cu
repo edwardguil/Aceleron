@@ -77,12 +77,14 @@ int main(int argc, char *argv[]) {
     ReLU<double, double*> layer2;
     Dense<double, double*> layer3(16, 2, false);
     Softmax<double, double*> layer4;
+	CategoricalCrossentropy<double, double*> layer5;
 
 	// Serial
-	Dense<double> layer1_s(16, 3, false);
+	Dense<double> layer1_s(2, 16, false);
     ReLU<double> layer2_s;
     Dense<double> layer3_s(16, 2, false);
     Softmax<double> layer4_s;
+	CategoricalCrossentropy<double> layer5_s;
 	
 	// --------------- Tests -------------------------
 	// std::cout << "CUDA IMPLEMENTATION" << std::endl;
@@ -101,19 +103,35 @@ int main(int argc, char *argv[]) {
 	// --------------- Tests -------------------------
 	// return 0;
 
+
+	// std::cout << "CUDA IMPLEMENTATION" << std::endl;
 	Matrix<double, double*> out1 = layer1.forward(x_train);
 	Matrix<double, double*> out2 = layer2.forward(out1);
 	Matrix<double, double*> out3 = layer3.forward(out2); 
-	Matrix<double, double*> out4 = layer4.forward(out3); 
-	std::cout << "CUDA IMPLEMENTATION" << std::endl;
-	print(out4);
+	Matrix<double, double*> out4 = layer4.forward(out3);
+	// print(out4);
+	// flush(std::cout);
 
+	// std::cout << "SERIAL IMPLEMENTATION" << std::endl;
 	Matrix<double> out1_s = layer1_s.forward(x_train_s);
 	Matrix<double> out2_s = layer2_s.forward(out1_s);
 	Matrix<double> out3_s = layer3_s.forward(out2_s); 
-	Matrix<double> out4_s = layer4_s.forward(out3_s); 
+	Matrix<double> out4_s = layer4_s.forward(out3_s);
+	// print(out4_s); 
+	// flush(std::cout);
+
+    //mul_const(log(sum(mul(y_true, y_pred), 1, true)), (double) -1.0);
+	std::cout << "CUDA IMPLEMENTATION" << std::endl;
+	print(sum(mul(y_train, out4), 1, true));
+	//double out5 = layer5.calculateLoss(y_train, out4);
 	std::cout << "SERIAL IMPLEMENTATION" << std::endl;
-	print(out4);
+	print(sum(mul(y_train_s, out4_s), 1, true));
+	//double out5_s = layer5_s.calculateLoss(y_train_s, out4_s); 
+
+
+
+	// flush(std::cout);
+	// print(mul(y_train_s, out4_s));
 	return 0;
 
 	//print(max(out3));

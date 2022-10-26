@@ -238,8 +238,8 @@ Softmax<dtype, vtype>::Softmax(void) {}
 */
 template<typename dtype, typename vtype>
 matrix::Matrix<dtype, vtype> Softmax<dtype, vtype>::forward(matrix::Matrix<dtype, vtype>& input) {
-    matrix::Matrix<dtype, vtype> temp = matrix::exp(matrix::subtract(input, 
-		matrix::max(input)));
+    
+    matrix::Matrix<dtype, vtype> temp = matrix::exp(matrix::subtract(input, matrix::max(input)));
     return matrix::division(temp, matrix::sum(temp, 1, true));
 }
 

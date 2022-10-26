@@ -13,7 +13,7 @@
 template<typename dtype, typename vtype>
 double Loss<dtype, vtype>::calculateLoss(matrix::Matrix<dtype, vtype> y_true, 
 	    matrix::Matrix<dtype, vtype> y_pred) {
-    return matrix::sum(loss(y_true, y_pred), 1, false)[0] / y_true.rows; 
+    return matrix::sum(loss(y_true, y_pred), 1, false).get_idx(0) / y_true.rows; 
 }
 
 /* CategoricalCrossEntropy::loss()
@@ -29,8 +29,7 @@ template<typename dtype, typename vtype>
 matrix::Matrix<dtype, vtype> CategoricalCrossentropy<dtype, vtype>::loss(matrix::Matrix<dtype, vtype> y_true, 
 	    matrix::Matrix<dtype, vtype> y_pred) {
     // Expects y_true to be one hot encoded
-    return matrix::mul_const(matrix::log(matrix::sum(matrix::mul(y_true, 
-			y_pred))), (double) -1.0);
+    return matrix::mul_const(matrix::log(matrix::sum(matrix::mul(y_true, y_pred), 1, true)), (double) -1.0);
 }
 
 /* SparseCategoricalCrossEntropy::loss()

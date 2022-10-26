@@ -22,6 +22,7 @@ public:
 
     int size();
 
+    dtype get_idx(int i);
     vtype get_matrix();
     void get_matrix(Matrix<dtype>&);
     
