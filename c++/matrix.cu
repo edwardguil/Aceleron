@@ -154,13 +154,9 @@ inline void Matrix<double, double*>::get_matrix(Matrix<double>& dest) {
 */
 template <>
 inline double Matrix<double, double*>::get_idx(int i) {
-	std::cout << "Called" << std::endl;
-	flush(std::cout);
-	double* value = (double*) malloc(sizeof(double) * 10); 
-	cuda::checkError(cudaMemcpy(value, matrix, sizeof(double) * 10, cudaMemcpyDeviceToHost));
-	std::cout << "After" << std::endl;
-	flush(std::cout);
-    return value[0];
+	double value = 0;
+	cuda::checkError(cudaMemcpy(&value, matrix, sizeof(double), cudaMemcpyDeviceToHost));
+    return value;
 }
 
 /* Matrix<dtype>::copy()
@@ -641,10 +637,11 @@ Matrix<dtype, double*> sum(Matrix<dtype, double*> a, int axis, bool keepdims) {
     } else {
 		int blocks = (a.cols*a.rows + threads - 1) / threads;
 		Matrix<dtype, double*> out(1, blocks);
-		cuda::sum_reduce<<<blocks, threads, sizeof(double) * blocks>>>(a.get_matrix(), out.get_matrix());
+		cuda::sum_reduce<<<blocks, threads, sizeof(double) * threads>>>(a.rows*a.cols, a.get_matrix(), out.get_matrix());
 		while (blocks > 1) {
+			// Largest N in current dataset is 1000, so this will never get called THIS MAY NOT WORK!!!. 
 			blocks = (out.cols + threads - 1) / threads;
-			cuda::sum_reduce<<<blocks, threads>>>(out.get_matrix(), out.get_matrix());
+			cuda::sum_reduce<<<blocks, threads,  sizeof(double) * threads>>>(out.cols, out.get_matrix(), out.get_matrix());
 			out.cols = blocks;
 		}
 		return out;

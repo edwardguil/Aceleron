@@ -75,21 +75,27 @@ void sum_keepdims_1(int a_rows, int a_cols, double* a, double* b) {
 }
 
 __global__
-void sum_reduce(double* a, double* b) {
-extern __shared__ int sdata[];
+void sum_reduce(int N, double* a, double* b) {
+    extern __shared__ double sdata[];
     // each thread loads one element from global to shared mem
-    unsigned int tid = threadIdx.x;
-    unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
+    int tid = threadIdx.x;
+    int i = blockIdx.x*blockDim.x + threadIdx.x;
+
+    if (i >= N) {
+        sdata[tid] = 0;
+        return;
+    }
 
     sdata[tid] = a[i];
     __syncthreads();
     // do reduction in shared mem
-    for(unsigned int s=1; s < blockDim.x; s *= 2) {
-        if (tid % (2*s) == 0) {
+    for (unsigned int s=blockDim.x/2; s>0; s>>=1) {
+        if (tid < s) {
             sdata[tid] += sdata[tid + s];
+        }
+        __syncthreads();
     }
     __syncthreads();
-    }
     // write result for this block to global mem
     if (tid == 0) { 
         b[blockIdx.x] = sdata[0];

@@ -18,7 +18,7 @@ __global__
 void sum_keepdims_1(int a_rows, int a_cols, double* a, double* b);
 
 __global__
-void sum_reduce(double* a, double* b);
+void sum_reduce(int N, double* a, double* b);
 
 __global__
 void add(int a_rows, int a_cols, int loop, double* a, double* b, double* c);
