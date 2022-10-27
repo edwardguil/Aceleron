@@ -49,19 +49,19 @@ int main(int argc, char *argv[]) {
 	int train_size = N * 0.8;
 
 	// Define the training and testing Matrixes
-    Matrix<double> x_train_s(train_size, 2);
-    Matrix<double> y_train_s(train_size, 2);
-    Matrix<double> x_test_s(N - train_size, 2);
-    Matrix<double> y_test_s(N - train_size, 2);
-	// This function allocates the data to these matrices
-	handle_input(x_train_s, y_train_s, x_test_s, y_test_s, N);
+    // Matrix<double> x_train_s(train_size, 2);
+    // Matrix<double> y_train_s(train_size, 2);
+    // Matrix<double> x_test_s(N - train_size, 2);
+    // Matrix<double> y_test_s(N - train_size, 2);
+	// // This function allocates the data to these matrices
+	// handle_input(x_train_s, y_train_s, x_test_s, y_test_s, N);
 
-	// Construct our network
-    Dense<> layer1_s(2, 16);
-    ReLU<> layer2_s;
-    Dense<> layer3_s(16, 2);
-    SoftmaxCrossEntropy<> layer4_s;
-    optimizer::SGD<> sgd_s(1.0, 0.001);
+	// // Construct our network
+    // Dense<> layer1_s(2, 16);
+    // ReLU<> layer2_s;
+    // Dense<> layer3_s(16, 2);
+    // SoftmaxCrossEntropy<> layer4_s;
+    // optimizer::SGD<> sgd_s(1.0, 0.001);
 
 
     Matrix<double, double*> x_train(train_size, 2);
@@ -71,10 +71,10 @@ int main(int argc, char *argv[]) {
 	handle_input(x_train, y_train, x_test, y_test, N);
 
 	Dense<double, double*> layer1(2, 16);
-	layer1.weights.set_matrix(&(layer1_s.weights.get_matrix()[0]));
+	// layer1.weights.set_matrix(&(layer1_s.weights.get_matrix()[0]));
 	ReLU<double, double*> layer2;
 	Dense<double, double*> layer3(16, 2);
-	layer3.weights.set_matrix(&(layer3_s.weights.get_matrix()[0]));
+	// layer3.weights.set_matrix(&(layer3_s.weights.get_matrix()[0]));
 	SoftmaxCrossEntropy<double, double*> layer4;
 	optimizer::SGD<double, double*> sgd(1.0, 0.001);
 	// // START Test code -----------------
@@ -100,23 +100,23 @@ int main(int argc, char *argv[]) {
 	// Main algorithimic loop
     for (int i = 0; i < 2001; i++) {
 		// SERIAL
-		Matrix<double> out1_s = layer1_s.forward(x_train_s);
-		Matrix<double> out2_s = layer2_s.forward(out1_s);
-		Matrix<double> out3_s = layer3_s.forward(out2_s);
-		Matrix<double> out4_s = layer4_s.forward(out3_s, y_train_s);
+		// Matrix<double> out1_s = layer1_s.forward(x_train_s);
+		// Matrix<double> out2_s = layer2_s.forward(out1_s);
+		// Matrix<double> out3_s = layer3_s.forward(out2_s);
+		// Matrix<double> out4_s = layer4_s.forward(out3_s, y_train_s);
 
-		double loss_s = layer4_s.get_loss();
-		double acc_s = metric::accuracy(y_train_s, out4_s);
+		// double loss_s = layer4_s.get_loss();
+		// double acc_s = metric::accuracy(y_train_s, out4_s);
 
-		Matrix<double> back4_s = layer4_s.backward(out4_s, y_train_s);
-		Matrix<double> back3_s = layer3_s.backward(out2_s, back4_s);
-		Matrix<double> back2_s = layer2_s.backward(out1_s, back3_s);
-		Matrix<double> back1_s = layer1_s.backward(x_train_s, back2_s);
+		// Matrix<double> back4_s = layer4_s.backward(out4_s, y_train_s);
+		// Matrix<double> back3_s = layer3_s.backward(out2_s, back4_s);
+		// Matrix<double> back2_s = layer2_s.backward(out1_s, back3_s);
+		// Matrix<double> back1_s = layer1_s.backward(x_train_s, back2_s);
 		
-		sgd_s.pre_update();
-		sgd_s.update(&layer3_s);
-		sgd_s.update(&layer1_s);
-		sgd_s.post_update();
+		// sgd_s.pre_update();
+		// sgd_s.update(&layer3_s);
+		// sgd_s.update(&layer1_s);
+		// sgd_s.post_update();
 
 		// CUDA
 		Matrix<double, double*> out1 = layer1.forward(x_train);
@@ -147,7 +147,7 @@ int main(int argc, char *argv[]) {
 			double losstest = layer4.get_loss();
 			double acctest = metric::accuracy(y_test, outtest4);
 
-			std::cout << "CUDA   - ";
+			// std::cout << "CUDA   - ";
 			std::cout << "epoch: " << i;
 			std::cout << ", acc: " << std::setprecision(3) << acc;
 			std::cout << ", loss: " << std::setprecision(3) << loss;
@@ -155,21 +155,21 @@ int main(int argc, char *argv[]) {
 			std::cout << ", loss_test: " << std::setprecision(3) << losstest;
 			std::cout << ", lr: " << std::fixed << std::setprecision(3) << sgd.get_lr() << std::endl;
 
-			// Let's test the network every 100 iterations
-			Matrix<double> outtest1_s = layer1_s.forward(x_test_s);
-			Matrix<double> outtest2_s = layer2_s.forward(outtest1_s);
-			Matrix<double> outtest3_s = layer3_s.forward(outtest2_s);
-			Matrix<double> outtest4_s = layer4_s.forward(outtest3_s, y_test_s);
-			double losstest_s = layer4_s.get_loss();
-			double acctest_s = metric::accuracy(y_test_s, outtest4_s);
+			// // Let's test the network every 100 iterations
+			// Matrix<double> outtest1_s = layer1_s.forward(x_test_s);
+			// Matrix<double> outtest2_s = layer2_s.forward(outtest1_s);
+			// Matrix<double> outtest3_s = layer3_s.forward(outtest2_s);
+			// Matrix<double> outtest4_s = layer4_s.forward(outtest3_s, y_test_s);
+			// double losstest_s = layer4_s.get_loss();
+			// double acctest_s = metric::accuracy(y_test_s, outtest4_s);
 			
-			std::cout <<  "SERIAL - ";
-			std::cout << "epoch: " << i;
-			std::cout << ", acc: " << std::setprecision(3) << acc_s;
-			std::cout << ", loss: " << std::setprecision(3) << loss_s;
-			std::cout << ", acc_test: " << std::setprecision(3) << acctest_s;
-			std::cout << ", loss_test: " << std::setprecision(3) << losstest_s;
-			std::cout << ", lr: " << std::fixed << std::setprecision(3) << sgd_s.get_lr() << std::endl;
+			// std::cout <<  "SERIAL - ";
+			// std::cout << "epoch: " << i;
+			// std::cout << ", acc: " << std::setprecision(3) << acc_s;
+			// std::cout << ", loss: " << std::setprecision(3) << loss_s;
+			// std::cout << ", acc_test: " << std::setprecision(3) << acctest_s;
+			// std::cout << ", loss_test: " << std::setprecision(3) << losstest_s;
+			// std::cout << ", lr: " << std::fixed << std::setprecision(3) << sgd_s.get_lr() << std::endl;
 		}
 
     }

@@ -44,15 +44,15 @@ void Dense<dtype, vtype>::randomize_weights(bool randomize) {
 */
 template<>
 void Dense<double, double*>::randomize_weights(bool randomize) {
-    // std::default_random_engine generator;
-    // std::uniform_real_distribution<double> distribution(0.0,1.0);
-    // std::vector<double> randomized(weights.rows * weights.cols);
-    // for (int i = 0; i < weights.rows; i++) {
-    //     for (int j = 0; j < weights.cols; j++) {
-    //         randomized[i*weights.cols + j] = randomize ? distribution(generator) : (double) 0.001 * i;
-    //     }
-    // }
-    // weights.set_matrix(&(randomized[0]));
+    std::default_random_engine generator;
+    std::uniform_real_distribution<double> distribution(0.0,1.0);
+    std::vector<double> randomized(weights.rows * weights.cols);
+    for (int i = 0; i < weights.rows; i++) {
+        for (int j = 0; j < weights.cols; j++) {
+            randomized[i*weights.cols + j] = randomize ? distribution(generator) : (double) 0.001 * i;
+        }
+    }
+    weights.set_matrix(&(randomized[0]));
 }
 
 

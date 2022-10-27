@@ -7,25 +7,25 @@ DEPEND := layers.cu losses.cu metrics.cu optimizers.cu matrix.cu cuda.cu
 all: driver driverp
 
 driver : driver.o
-	$(NVCC) $(NVFLAGS) driver.o -o $@
+	$(NVCC) -O3 $(NVFLAGS) driver.o -o $@
 
 driver.o: driver.cu  $(DEPEND)
-	$(NVCC) $(NVFLAGS) -c -o driver.o driver.cu
+	$(NVCC) -O3 $(NVFLAGS) -c -o driver.o driver.cu
 
 driverp : driverParrallel.o
-	$(NVCC) $(NVFLAGS) driverParrallel.o -o driverp
+	$(NVCC) -O3 $(NVFLAGS) driverParrallel.o -o driverp
 
 driverParrallel.o: driverParrallel.cu $(DEPEND)
-	$(NVCC) $(NVFLAGS) -c -o driverParrallel.o driverParrallel.cu
+	$(NVCC) -O3 $(NVFLAGS) -c -o driverParrallel.o driverParrallel.cu
 
 tests : tests.o
-	$(NVCC) $(NVFLAGS) tests.o -o tests
+	$(NVCC) -O3 $(NVFLAGS) tests.o -o tests
 
 tests.o: tests.cu $(DEPEND)
-	$(NVCC) $(NVFLAGS) -c -o tests.o tests.cu
+	$(NVCC) -O3 $(NVFLAGS) -c -o tests.o tests.cu
 
 %.o : %.cu 
-	$(NVCC) $(NVFLAGS) -c $< -o $@ 
+	$(NVCC) -O3 $(NVFLAGS) -c $< -o $@ 
 
 clean: 
 	rm driver driver.o driverp driverParrallel.o debug debug.o tests.o tests
