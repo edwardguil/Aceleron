@@ -26,7 +26,7 @@ public:
     vtype get_matrix();
     void get_matrix(Matrix<dtype>&);
     
-    Matrix<dtype> copy();
+    Matrix<dtype, vtype> copy();
 };
 
 template <typename dtype>

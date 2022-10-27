@@ -92,7 +92,7 @@ int Matrix<dtype, vtype>::size() {
 * Returns: a deep copy of this matrix object.
 */
 template <typename dtype, typename vtype>
-Matrix<dtype> Matrix<dtype, vtype>::copy() {
+Matrix<dtype, vtype> Matrix<dtype, vtype>::copy() {
     Matrix<dtype> out(rows, cols);
     out.set_matrix(matrix);
     return out;
@@ -166,6 +166,19 @@ inline double Matrix<double, double*>::get_idx(int i) {
     return value;
 }
 
+/* Matrix<dtype>::copy()
+// 
+* Deep copies this matrix object. 
+* 
+* Returns: a deep copy of this matrix object.
+*/
+template<>
+inline Matrix<double, double*> Matrix<double, double*>::copy() {
+    Matrix<double, double*> out(rows, cols);
+    cuda::checkError(cudaMemcpy(out.get_matrix(), matrix, sizeof(double) * out.size(), cudaMemcpyDeviceToDevice));
+    return out;
+}
+
 /* Matrix<double, double*>::Matrix()
 * -----
 * Initiliases a Matrix object with the respective shape. 
@@ -228,19 +241,19 @@ inline int Matrix<int, int*>::get_idx(int i) {
 }
 
 
-
 /* Matrix<dtype>::copy()
 // 
 * Deep copies this matrix object. 
 * 
 * Returns: a deep copy of this matrix object.
 */
-// template<>
-// inline Matrix<double, double*> Matrix<double, double*>::copy() {
-//     Matrix<double, double*> out(rows, cols);
-//     out.set_matrix(matrix);
-//     return out;
-// }
+template<>
+inline Matrix<int, int*> Matrix<int, int*>::copy() {
+    Matrix<int, int*> out(rows, cols);
+    cuda::checkError(cudaMemcpy(out.get_matrix(), matrix, sizeof(int) * out.size(), cudaMemcpyDeviceToDevice));
+    return out;
+}
+
 
 
 

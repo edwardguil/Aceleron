@@ -16,6 +16,9 @@ void handle_input(Matrix<double>& x_train, Matrix<double>& y_train,
 void handle_input(Matrix<double, double*>& x_train, Matrix<double, double*>& y_train, 
 		Matrix<double, double*>& x_test, Matrix<double, double*>& y_test, int N);
 
+
+int handle_N(int N);
+
 /* main()
 * -----
 * The main entry point for this program. Creates and runs 
@@ -36,15 +39,7 @@ void handle_input(Matrix<double, double*>& x_train, Matrix<double, double*>& y_t
 */
 int main(int argc, char *argv[]) {
 	// Some code to handle command line input
-	int N = 100;
-	if (argc > 1) {
-		N = std::stoi(argv[1]);
-		if (N > 1000 || N < 100) {
-			N = 1000;
-		}
-	}
-
-
+	int N = argc > 1 ? handle_N(std::stoi(argv[1])) : 1000;
 	std::cout << "N: " << N << std::endl;
 	int train_size = N * 0.8;
 
@@ -230,6 +225,26 @@ void handle_input(Matrix<double, double*>& x_train, Matrix<double, double*>& y_t
 		y_train.set_matrix(&(y_train_raw_1000[0]));
 		x_test.set_matrix(&(x_test_raw_1000[0]));
 		y_test.set_matrix(&(y_test_raw_1000[0]));
+	} else if (N == 2000) {
+		x_train.set_matrix(&(x_train_raw_2000[0]));
+		y_train.set_matrix(&(y_train_raw_2000[0]));
+		x_test.set_matrix(&(x_test_raw_2000[0]));
+		y_test.set_matrix(&(y_test_raw_2000[0]));
+	} else if (N == 5000) {
+		x_train.set_matrix(&(x_train_raw_5000[0]));
+		y_train.set_matrix(&(y_train_raw_5000[0]));
+		x_test.set_matrix(&(x_test_raw_5000[0]));
+		y_test.set_matrix(&(y_test_raw_5000[0]));
+	} else if (N == 10000) {
+		x_train.set_matrix(&(x_train_raw_10000[0]));
+		y_train.set_matrix(&(y_train_raw_10000[0]));
+		x_test.set_matrix(&(x_test_raw_10000[0]));
+		y_test.set_matrix(&(y_test_raw_10000[0]));
+	} else {
+		x_train.set_matrix(&(x_train_raw_20000[0]));
+		y_train.set_matrix(&(y_train_raw_20000[0]));
+		x_test.set_matrix(&(x_test_raw_20000[0]));
+		y_test.set_matrix(&(y_test_raw_20000[0]));
 	}
 }
 
@@ -252,17 +267,17 @@ void handle_input(Matrix<double>& x_train, Matrix<double>& y_train,
 		y_train.set_matrix(y_train_raw_100);
 		x_test.set_matrix(x_test_raw_100);
 		y_test.set_matrix(y_test_raw_100);
-	} else if (N == 200) {
+	} else if (N == 200)   {
 		x_train.set_matrix(x_train_raw_200);
 		y_train.set_matrix(y_train_raw_200);
 		x_test.set_matrix(x_test_raw_200);
 		y_test.set_matrix(y_test_raw_200);
-	} else if (N == 300) {
+	} else if (N == 300)   {
 		x_train.set_matrix(x_train_raw_300);
 		y_train.set_matrix(y_train_raw_300);
 		x_test.set_matrix(x_test_raw_300);
 		y_test.set_matrix(y_test_raw_300);
-	} else if (N == 400) {
+	} else if (N == 400)  {
 		x_train.set_matrix(x_train_raw_400);
 		y_train.set_matrix(y_train_raw_400);
 		x_test.set_matrix(x_test_raw_400);
@@ -282,7 +297,7 @@ void handle_input(Matrix<double>& x_train, Matrix<double>& y_train,
 		y_train.set_matrix(y_train_raw_700);
 		x_test.set_matrix(x_test_raw_700);
 		y_test.set_matrix(y_test_raw_700);
-	} else if (N == 800) {
+	} else if (N == 800)  {
 		x_train.set_matrix(x_train_raw_800);
 		y_train.set_matrix(y_train_raw_800);
 		x_test.set_matrix(x_test_raw_800);
@@ -297,5 +312,58 @@ void handle_input(Matrix<double>& x_train, Matrix<double>& y_train,
 		y_train.set_matrix(y_train_raw_1000);
 		x_test.set_matrix(x_test_raw_1000);
 		y_test.set_matrix(y_test_raw_1000);
+	} else if (N == 2000) {
+		x_train.set_matrix(x_train_raw_2000);
+		y_train.set_matrix(y_train_raw_2000);
+		x_test.set_matrix(x_test_raw_2000);
+		y_test.set_matrix(y_test_raw_2000);
+	} else if (N == 5000) {
+		x_train.set_matrix(x_train_raw_5000);
+		y_train.set_matrix(y_train_raw_5000);
+		x_test.set_matrix(x_test_raw_5000);
+		y_test.set_matrix(y_test_raw_5000);
+	} else if (N == 10000) {
+		x_train.set_matrix(x_train_raw_10000);
+		y_train.set_matrix(y_train_raw_10000);
+		x_test.set_matrix(x_test_raw_10000);
+		y_test.set_matrix(y_test_raw_10000);
+	} else {
+		x_train.set_matrix(x_train_raw_20000);
+		y_train.set_matrix(y_train_raw_20000);
+		x_test.set_matrix(x_test_raw_20000);
+		y_test.set_matrix(y_test_raw_20000);
 	}
 }
+
+int handle_N(int N) {
+	if (N <= 100) {
+		return 100;
+	} else if (N <= 200)   {
+		return 200;
+	} else if (N <= 300)   {
+		return 300;
+	} else if (N <= 400)  {
+		return 400;
+	} else if (N <= 500) {
+		return 500;
+	} else if (N <= 600) {
+		return 600;
+	} else if (N <= 700) {
+		return 700;
+	} else if (N <= 800)  {
+		return 800;
+	} else if (N <= 900) {
+		return 900;
+	} else if (N <= 1000) {
+		return 1000;
+	} else if (N <= 2000) {
+		return 2000;
+	} else if (N <= 5000) {
+		return 5000;
+	} else if (N <= 10000) {
+		return 10000;
+	} else {
+		return 20000;
+	}
+}
+
