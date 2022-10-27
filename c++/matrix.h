@@ -5,6 +5,8 @@
 
 namespace matrix 
 {
+
+
 template <typename dtype, typename vtype = std::vector<dtype, std::allocator<dtype>>>
 class Matrix {
     vtype matrix;
@@ -79,6 +81,8 @@ Matrix<dtype> relu_fwd(Matrix<dtype> a);
 
 template <typename dtype>
 Matrix<dtype, dtype*> relu_bwd(Matrix<dtype, dtype*> a, Matrix<dtype, dtype*> b);
+
+void free();
 
 }
 #include "matrix.cu"

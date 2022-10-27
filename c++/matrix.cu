@@ -9,7 +9,20 @@
 
 namespace matrix {
 
-typedef double cuda;
+std::vector<void*> _FREE;
+
+// auto DotTime = std::chrono::high_resolution_clock::zero();
+// auto MaxTime = std::chrono::high_resolution_clock::zero();
+// auto SumTime = std::chrono::high_resolution_clock::zero();
+// auto TransposeTime = std::chrono::high_resolution_clock::zero();
+// auto AddTime = std::chrono::high_resolution_clock::zero();
+// auto SubtractTime = std::chrono::high_resolution_clock::zero();
+// auto MulTime = std::chrono::high_resolution_clock::zero();
+// auto DivisionTime = std::chrono::high_resolution_clock::zero();
+// auto MulConstTime = std::chrono::high_resolution_clock::zero();
+// auto ExpTime = std::chrono::high_resolution_clock::zero();
+// auto LogTime = std::chrono::high_resolution_clock::zero();
+
 /* Matrix<dtype>::Matrix()
 * -----
 * Initiliases a Matrix object with the respective shape. 
@@ -317,6 +330,7 @@ inline void print(Matrix<dtype, dtype*> matrix) {
 */
 template <typename dtype>
 Matrix<dtype> dot(Matrix<dtype> a, Matrix<dtype> b) {
+	//auto StartTime = std::chrono::high_resolution_clock::now();
     // a should be inputs
     // b should be weights
     Matrix<dtype> out(a.rows, b.cols);
@@ -330,6 +344,7 @@ Matrix<dtype> dot(Matrix<dtype> a, Matrix<dtype> b) {
 				}
 		}
     }
+	//DotTime = std::chrono::duration_cast<std::chrono::microseconds>(DotTStartTime - std::chrono::high_resolution_clock::now(););
     return out;
 }
 
@@ -689,6 +704,7 @@ Matrix<dtype, dtype*> dot(Matrix<dtype, dtype*> a, Matrix<dtype, dtype*> b) {
 	dim3 block(threads, threads);
     dim3 grid((a.rows+threads-1)/threads, (b.cols+threads-1)/threads);
 	cuda::dot<<<grid, block>>>(a.rows, b.cols, b.rows, a.get_matrix(), b.get_matrix(), out.get_matrix());
+	_FREE.push_back(out.get_matrix());
 	return out;
 }
 
@@ -699,6 +715,7 @@ Matrix<dtype, dtype*> max(Matrix<dtype, dtype*> a) {
 	int threads = 1024;
 	int blocks = (a.rows+threads-1)/threads;
 	cuda::max<<<blocks, threads>>>(a.rows, a.cols, a.get_matrix(), out.get_matrix());
+	_FREE.push_back(out.get_matrix());
 	return out;
 }
 
@@ -710,11 +727,13 @@ Matrix<dtype, dtype*> sum(Matrix<dtype, dtype*> a, int axis, bool keepdims) {
 			Matrix<dtype, dtype*> out(a.rows, 1); 
 			int blocks = (a.rows+threads-1)/threads;
 			cuda::sum_keepdims_1<<<blocks, threads>>>(a.rows, a.cols, a.get_matrix(), out.get_matrix());
+			_FREE.push_back(out.get_matrix());
 			return out;
 		} else {
 			Matrix<dtype, dtype*> out(1, a.cols);
 			int blocks = (a.cols+threads-1)/threads;
 			cuda::sum_keepdims_0<<<blocks, threads>>>(a.rows, a.cols, a.get_matrix(), out.get_matrix());
+			_FREE.push_back(out.get_matrix());
 			return out;
 		}
     } else {
@@ -727,6 +746,7 @@ Matrix<dtype, dtype*> sum(Matrix<dtype, dtype*> a, int axis, bool keepdims) {
 			cuda::sum_reduce<<<blocks, threads,  sizeof(dtype) * threads>>>(out.cols, out.get_matrix(), out.get_matrix());
 			out.cols = blocks;
 		}
+		_FREE.push_back(out.get_matrix());
 		return out;
     }
 }
@@ -738,6 +758,7 @@ Matrix<dtype, dtype*> transpose(Matrix<dtype, dtype*> a) {
 	dim3 block(threads, threads);
 	dim3 grid((a.rows+threads-1)/threads, (a.cols+threads-1)/threads);
 	cuda::transpose<<<grid, block>>>(a.rows, a.cols, a.get_matrix(), out.get_matrix());
+	_FREE.push_back(out.get_matrix());
 	return out;
 }
 
@@ -749,6 +770,7 @@ Matrix<dtype, dtype*> add(Matrix<dtype, dtype*> a, Matrix<dtype, dtype*> b) {
 	dim3 grid((a.rows+threads-1)/threads, (a.cols+threads-1)/threads);
 	int loop = loop_case(a.rows, a.cols, b.rows, b.cols);
 	cuda::add<<<grid, block>>>(a.rows, a.cols, loop, a.get_matrix(), b.get_matrix(), out.get_matrix());
+	_FREE.push_back(out.get_matrix());
 	return out;
 }
 
@@ -760,6 +782,7 @@ Matrix<dtype, dtype*> subtract(Matrix<dtype, dtype*> a, Matrix<dtype, dtype*> b)
 	dim3 grid((a.rows+threads-1)/threads, (a.cols+threads-1)/threads);
 	int loop = loop_case(a.rows, a.cols, b.rows, b.cols);
 	cuda::subtract<<<grid, block>>>(a.rows, a.cols, loop, a.get_matrix(), b.get_matrix(), out.get_matrix());
+	_FREE.push_back(out.get_matrix());
 	return out;
 }
 
@@ -771,6 +794,7 @@ Matrix<dtype, dtype*> mul(Matrix<dtype, dtype*> a, Matrix<dtype, dtype*> b) {
 	dim3 grid((a.rows+threads-1)/threads, (a.cols+threads-1)/threads);
 	int loop = loop_case(a.rows, a.cols, b.rows, b.cols);
 	cuda::mul<<<grid, block>>>(a.rows, a.cols, loop, a.get_matrix(), b.get_matrix(), out.get_matrix());
+	_FREE.push_back(out.get_matrix());
 	return out;
 }
 
@@ -782,6 +806,7 @@ Matrix<dtype, dtype*> division(Matrix<dtype, dtype*> a, Matrix<dtype, dtype*> b)
 	dim3 grid((a.rows+threads-1)/threads, (a.cols+threads-1)/threads);
 	int loop = loop_case(a.rows, a.cols, b.rows, b.cols);
 	cuda::division<<<grid, block>>>(a.rows, a.cols, loop, a.get_matrix(), b.get_matrix(), out.get_matrix());
+	_FREE.push_back(out.get_matrix());
 	return out;
 }
 
@@ -792,6 +817,7 @@ Matrix<int, int*> equals(Matrix<int, int*> a, Matrix<int, int*> b) {
 	dim3 grid((a.rows+threads-1)/threads, (a.cols+threads-1)/threads);
 	int loop = loop_case(a.rows, a.cols, b.rows, b.cols);
 	cuda::cuda_equals<<<grid, block>>>(a.rows, a.cols, loop, a.get_matrix(), b.get_matrix(), out.get_matrix());
+	_FREE.push_back(out.get_matrix());
 	return out;
 }
 
@@ -802,6 +828,7 @@ Matrix<dtype, dtype*> exp(Matrix<dtype, dtype*> a) {
 	dim3 block(threads, threads);
 	dim3 grid((a.rows+threads-1)/threads, (a.cols+threads-1)/threads);
 	cuda::cuda_exp<<<grid, block>>>(a.rows, a.cols, a.get_matrix(), out.get_matrix());
+	_FREE.push_back(out.get_matrix());
 	return out;
 }
 
@@ -812,6 +839,7 @@ Matrix<dtype, dtype*> log(Matrix<dtype, dtype*> a) {
 	dim3 block(threads, threads);
 	dim3 grid((a.rows+threads-1)/threads, (a.cols+threads-1)/threads);
 	cuda::cuda_log<<<grid, block>>>(a.rows, a.cols, a.get_matrix(), out.get_matrix());
+	_FREE.push_back(out.get_matrix());
 	return out;
 }
 
@@ -822,6 +850,7 @@ Matrix<dtype, dtype*> mul_const(Matrix<dtype, dtype*> a, dtype b) {
 	dim3 block(threads, threads);
 	dim3 grid((a.rows+threads-1)/threads, (a.cols+threads-1)/threads);
 	cuda::mul_const<<<grid, block>>>(a.rows, a.cols, b, a.get_matrix(), out.get_matrix());
+	_FREE.push_back(out.get_matrix());
 	return out;
 }
 
@@ -831,6 +860,7 @@ Matrix<int, int*> argmax(Matrix<dtype, dtype*> a) {
 	int threads = 1024;
 	int blocks = (a.rows+threads-1)/threads;
 	cuda::argmax<<<blocks, threads>>>(a.rows, a.cols, a.get_matrix(), out.get_matrix());
+	_FREE.push_back(out.get_matrix());
 	return out;
 }
 
@@ -841,6 +871,7 @@ Matrix<dtype, dtype*> relu_fwd(Matrix<dtype, dtype*> a) {
 	dim3 block(threads, threads);
 	dim3 grid((a.rows+threads-1)/threads, (a.cols+threads-1)/threads);
 	cuda::relu_fwd<<<grid, block>>>(a.rows, a.cols, a.get_matrix(), out.get_matrix());
+	_FREE.push_back(out.get_matrix());
 	return out;
 }
 
@@ -851,6 +882,7 @@ Matrix<dtype, dtype*> relu_bwd(Matrix<dtype, dtype*> a, Matrix<dtype, dtype*> b)
 	dim3 block(threads, threads);
 	dim3 grid((a.rows+threads-1)/threads, (a.cols+threads-1)/threads);
 	cuda::relu_bwd<<<grid, block>>>(a.rows, a.cols, a.get_matrix(), b.get_matrix(), out.get_matrix());
+	_FREE.push_back(out.get_matrix());
 	return out;
 }
 
@@ -860,8 +892,19 @@ Matrix<dtype, dtype*> softmax_bwd(Matrix<dtype, dtype*> a, Matrix<int, int*> b) 
 	int threads = 1024;
 	int blocks = (a.rows+threads-1)/threads;
 	cuda::softmax_bwd<<<blocks, threads>>>(a.rows, a.cols, a.get_matrix(), b.get_matrix(), a.get_matrix());
+	_FREE.push_back(out.get_matrix());
 	return a;
 }
 
+void _free() {
+	while (!_FREE.empty()) {
+		cuda::checkError(cudaFree(_FREE.back()));
+		_FREE.pop_back();
+	}
+	// while (!_FREEI.empty()) {
+	// 	cuda::checkError(cudaFree(_FREEI.back()));
+	// 	_FREEI.pop_back();
+	// }
+}
 
 }

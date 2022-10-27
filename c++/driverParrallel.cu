@@ -38,6 +38,9 @@ int handle_N(int N);
 * Returns: 1 if the program failed, 0 if successful.
 */
 int main(int argc, char *argv[]) {
+	// auto StartTime = std::chrono::high_resolution_clock::now();
+	// auto TotalFreeTime = std::chrono::duration_cast<std::chrono::microseconds>(StartTime - StartTime);
+
 	// Some code to handle command line input
 	int N = argc > 1 ? handle_N(std::stoi(argv[1])) : 1000;
 	std::cout << "N: " << N << std::endl;
@@ -133,6 +136,10 @@ int main(int argc, char *argv[]) {
 		sgd.update(&layer3);
 		sgd.update(&layer1);
 		sgd.post_update();
+		// auto StartFreeTime = std::chrono::high_resolution_clock::now();
+		_free();	
+		// auto EndFreeTime = std::chrono::high_resolution_clock::now();	
+		// TotalFreeTime = std::chrono::duration_cast<std::chrono::microseconds>(StartFreeTime - EndFreeTime + TotalFreeTime);
 
 		if (i % 100 == 0) {
 			Matrix<double, double*> outtest1 = layer1.forward(x_test);
@@ -149,6 +156,8 @@ int main(int argc, char *argv[]) {
 			std::cout << ", acc_test: " << std::setprecision(3) << acctest;
 			std::cout << ", loss_test: " << std::setprecision(3) << losstest;
 			std::cout << ", lr: " << std::fixed << std::setprecision(3) << sgd.get_lr() << std::endl;
+			_free();		
+
 
 			// // Let's test the network every 100 iterations
 			// Matrix<double> outtest1_s = layer1_s.forward(x_test_s);
@@ -169,7 +178,7 @@ int main(int argc, char *argv[]) {
 
     }
 
-
+	// auto FinishTime = std::chrono::high_resolution_clock::now();
     return 0;
 }
 
@@ -240,11 +249,26 @@ void handle_input(Matrix<double, double*>& x_train, Matrix<double, double*>& y_t
 		y_train.set_matrix(&(y_train_raw_10000[0]));
 		x_test.set_matrix(&(x_test_raw_10000[0]));
 		y_test.set_matrix(&(y_test_raw_10000[0]));
-	} else {
+	} else if (N == 20000) {
 		x_train.set_matrix(&(x_train_raw_20000[0]));
 		y_train.set_matrix(&(y_train_raw_20000[0]));
 		x_test.set_matrix(&(x_test_raw_20000[0]));
 		y_test.set_matrix(&(y_test_raw_20000[0]));
+	} else if (N == 40000) {
+		x_train.set_matrix(&(x_train_raw_40000[0]));
+		y_train.set_matrix(&(y_train_raw_40000[0]));
+		x_test.set_matrix(&(x_test_raw_40000[0]));
+		y_test.set_matrix(&(y_test_raw_40000[0]));
+	} else if (N == 60000) {
+		x_train.set_matrix(&(x_train_raw_60000[0]));
+		y_train.set_matrix(&(y_train_raw_60000[0]));
+		x_test.set_matrix(&(x_test_raw_60000[0]));
+		y_test.set_matrix(&(y_test_raw_60000[0]));
+	} else {
+		x_train.set_matrix(&(x_train_raw_80000[0]));
+		y_train.set_matrix(&(y_train_raw_80000[0]));
+		x_test.set_matrix(&(x_test_raw_80000[0]));
+		y_test.set_matrix(&(y_test_raw_80000[0]));
 	}
 }
 
@@ -327,11 +351,26 @@ void handle_input(Matrix<double>& x_train, Matrix<double>& y_train,
 		y_train.set_matrix(y_train_raw_10000);
 		x_test.set_matrix(x_test_raw_10000);
 		y_test.set_matrix(y_test_raw_10000);
-	} else {
+	} else if (N == 20000) {
 		x_train.set_matrix(x_train_raw_20000);
 		y_train.set_matrix(y_train_raw_20000);
 		x_test.set_matrix(x_test_raw_20000);
 		y_test.set_matrix(y_test_raw_20000);
+	} else if (N == 40000) {
+		x_train.set_matrix(x_train_raw_40000);
+		y_train.set_matrix(y_train_raw_40000);
+		x_test.set_matrix(x_test_raw_40000);
+		y_test.set_matrix(y_test_raw_40000);
+	} else if (N == 60000) {
+		x_train.set_matrix(x_train_raw_60000);
+		y_train.set_matrix(y_train_raw_60000);
+		x_test.set_matrix(x_test_raw_60000);
+		y_test.set_matrix(y_test_raw_60000);
+	} else if (N == 80000) {
+		x_train.set_matrix(x_train_raw_80000);
+		y_train.set_matrix(y_train_raw_80000);
+		x_test.set_matrix(x_test_raw_80000);
+		y_test.set_matrix(y_test_raw_80000);
 	}
 }
 
@@ -362,8 +401,14 @@ int handle_N(int N) {
 		return 5000;
 	} else if (N <= 10000) {
 		return 10000;
-	} else {
+	} else if (N <= 20000) {
 		return 20000;
+	} else if (N <= 40000) {
+		return 40000;
+	} else if (N <= 60000) {
+		return 60000;
+	} else {
+		return 80000;
 	}
 }
 

@@ -145,6 +145,19 @@ void Dense<dtype, vtype>::set_biases(matrix::Matrix<dtype, vtype> new_biases) {
     biases = new_biases;
 }
 
+/* Dense::set_biases()
+* -----
+* Setter for the private member variable biases
+* 
+* @new_biases: the new biases to be set for the layer
+*/
+template<>
+void Dense<double, double*>::set_biases(matrix::Matrix<double, double*> new_biases) {
+    cuda::checkError(cudaFree(biases.get_matrix()));
+    biases = new_biases.copy();
+}
+
+
 /* Dense::set_weights()
 * -----
 * Setter for the private member variable weights
@@ -155,6 +168,19 @@ template<typename dtype, typename vtype>
 void Dense<dtype, vtype>::set_weights(matrix::Matrix<dtype, vtype> new_weights) {
     weights = new_weights;
 }
+
+/* Dense::set_weights()
+* -----
+* Setter for the private member variable weights
+* 
+* @new_weights: the new weights to be set for the layer
+*/
+template<>
+void Dense<double, double*>::set_weights(matrix::Matrix<double, double*> new_weights) {
+    cuda::checkError(cudaFree(weights.get_matrix()));
+    weights = new_weights.copy();
+}
+
 
 // ------------- RELU  -------------- //
 template<typename dtype, typename vtype>
@@ -301,7 +327,7 @@ template<typename dtype, typename vtype>
 matrix::Matrix<dtype, vtype> SoftmaxCrossEntropy<dtype, vtype>::forward(matrix::Matrix<dtype, vtype>& input, 
 	    matrix::Matrix<dtype, vtype>& y_true) {
     matrix::Matrix<dtype, vtype> out = softmax.forward(input);
-    loss = crossEntropy.calculateLoss(out, y_true);
+    loss = crossEntropy.calculateLoss(y_true, out);
     return out;
 }
 
