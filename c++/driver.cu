@@ -1,10 +1,12 @@
+#include <iomanip>
+#include <chrono>
 #include "matrix.h"
 #include "losses.h"
 #include "layers.h"
 #include "metrics.h"
 #include "optimizers.h"
 #include "cuda.h"
-#include "data/data.h"
+#include "data/data2.h"
 
 using namespace matrix;
 
@@ -33,6 +35,8 @@ int handle_N(int N);
 */
 int main(int argc, char *argv[]) {
 	// Some code to handle command line input
+	auto StartTime = std::chrono::high_resolution_clock::now();
+	auto TotalFreeTime = std::chrono::microseconds::zero();
 	int N = argc > 1 ? handle_N(std::stoi(argv[1])) : 1000;
 	std::cout << "N: " << N << std::endl;
 	int train_size = N * 0.8;
@@ -104,16 +108,34 @@ int main(int argc, char *argv[]) {
 			double losstest = layer4.get_loss();
 			double acctest = metric::accuracy(y_test, outtest4);
 
-			std::cout << "epoch: " << i;
-			std::cout << ", acc: " << acc;
-			std::cout << ", loss: " << loss;
-			std::cout << ", acc_test: " << acctest;
-			std::cout << ", loss_test: " << losstest;
-			std::cout << ", lr: " << std::fixed << sgd.get_lr() << std::endl;
+			if ( (i+1) % N == 0) {
+				// std::cout << "CUDA   - ";
+				std::cout << "epoch: " << i;
+				std::cout << ", acc: " << std::setprecision(3) << acc;
+				std::cout << ", loss: " << std::setprecision(3) << loss;
+				std::cout << ", acc_test: " << std::setprecision(3) << acctest;
+				std::cout << ", loss_test: " << std::setprecision(3) << losstest;
+				std::cout << ", lr: " << std::fixed << std::setprecision(3) << sgd.get_lr() << std::endl;
+			}
 		}
 
     }
-
+	auto FinishTime = std::chrono::high_resolution_clock::now();
+	auto TotalTime = std::chrono::duration_cast<std::chrono::microseconds>(FinishTime - StartTime);
+	std::cout << "TotalTime : " << std::setw(12) << TotalTime.count() << " us\n";
+	std::cout << "FreeTime : " << std::setw(12) << TotalFreeTime.count() << " us\n";
+	std::cout << "MallocTime : " << std::setw(12) << MallocTime.count() << " us\n";
+	std::cout << "MemCpyTime : " << std::setw(12) << MemCpyTime.count() << " us\n";
+	std::cout << "DotTime : " << std::setw(12) << DotTime.count() << " us\n";
+	std::cout << "MaxTime : " << std::setw(12) << MaxTime.count() << " us\n";
+	std::cout << "TransposeTime : " << std::setw(12) << TransposeTime.count() << " us\n";
+	std::cout << "AddTime : " << std::setw(12) << AddTime.count() << " us\n";
+	std::cout << "SubtractTime : " << std::setw(12) << SubtractTime.count() << " us\n";
+	std::cout << "MulTime : " << std::setw(12) << MulTime.count() << " us\n";
+	std::cout << "DivisionTime : " << std::setw(12) << DivisionTime.count() << " us\n";
+	std::cout << "ExpTime : " << std::setw(12) << ExpTime.count() << " us\n";
+	std::cout << "LogTime : " << std::setw(12) << LogTime.count() << " us\n";
+	std::cout << "EqualsTime : " << std::setw(12) << EqualsTime.count() << " us\n";
 
     return 0;
 }
