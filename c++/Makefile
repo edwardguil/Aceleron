@@ -7,7 +7,7 @@ DEPEND := layers.cu losses.cu metrics.cu optimizers.cu matrix.cu cuda.cu
 all: driver driverp
 
 driver : driver.o
-	$(NVCC) $(NVFLAGS) $(OBJFILES) driver.o -o $@
+	$(NVCC) $(NVFLAGS) driver.o -o $@
 
 driver.o: driver.cu  $(DEPEND)
 	$(NVCC) $(NVFLAGS) -c -o driver.o driver.cu

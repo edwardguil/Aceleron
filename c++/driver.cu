@@ -3,6 +3,7 @@
 #include "layers.h"
 #include "metrics.h"
 #include "optimizers.h"
+#include "cuda.h"
 #include "data/data.h"
 
 using namespace matrix;
