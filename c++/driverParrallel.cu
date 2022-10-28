@@ -126,7 +126,6 @@ int main(int argc, char *argv[]) {
 		
 		double loss = layer4.get_loss();
 		double acc = metric::accuracy(y_train, out4);
-
 		Matrix<double, double*> back4 = layer4.backward(out4, y_train);
 		Matrix<double, double*> back3 = layer3.backward(out2, back4);
 		Matrix<double, double*> back2 = layer2.backward(out1, back3);
@@ -149,8 +148,7 @@ int main(int argc, char *argv[]) {
 			Matrix<double, double*> outtest4 = layer4.forward(outtest3, y_test);
 			double losstest = layer4.get_loss();
 			double acctest = metric::accuracy(y_test, outtest4);
-			if ((i+1) % N == 0) {
-				// std::cout << "CUDA   - ";
+			if (i + 1 == 2001) {
 				std::cout << "epoch: " << i;
 				std::cout << ", acc: " << std::setprecision(3) << acc;
 				std::cout << ", loss: " << std::setprecision(3) << loss;
@@ -184,21 +182,24 @@ int main(int argc, char *argv[]) {
     }
 	auto FinishTime = std::chrono::high_resolution_clock::now();
 	auto TotalTime = std::chrono::duration_cast<std::chrono::microseconds>(FinishTime - StartTime);
-	std::cout << "TotalTime : " << std::setw(12) << TotalTime.count() << " us\n";
-	std::cout << "FreeTime : " << std::setw(12) << TotalFreeTime.count() << " us\n";
-	std::cout << "MallocTime : " << std::setw(12) << MallocTime.count() << " us\n";
-	std::cout << "MemCpyTime : " << std::setw(12) << MemCpyTime.count() << " us\n";
-	std::cout << "DotTime : " << std::setw(12) << DotTime.count() << " us\n";
-	std::cout << "MaxTime : " << std::setw(12) << MaxTime.count() << " us\n";
-	std::cout << "TransposeTime : " << std::setw(12) << TransposeTime.count() << " us\n";
-	std::cout << "AddTime : " << std::setw(12) << AddTime.count() << " us\n";
-	std::cout << "SubtractTime : " << std::setw(12) << SubtractTime.count() << " us\n";
-	std::cout << "MulTime : " << std::setw(12) << MulTime.count() << " us\n";
-	std::cout << "DivisionTime : " << std::setw(12) << DivisionTime.count() << " us\n";
-	std::cout << "ExpTime : " << std::setw(12) << ExpTime.count() << " us\n";
-	std::cout << "LogTime : " << std::setw(12) << LogTime.count() << " us\n";
-	std::cout << "EqualsTime : " << std::setw(12) << EqualsTime.count() << " us\n";
-
+	std::cout << "TotalTime       " << std::setw(12) << TotalTime.count() << " us\n";
+	std::cout << "FreeTime        " << std::setw(12) << TotalFreeTime.count() << " us\n";
+	std::cout << "MallocTime      " << std::setw(12) << MallocTime.count() << " us\n";
+	std::cout << "MemCpyTime      " << std::setw(12) << MemCpyTime.count() << " us\n";
+	std::cout << "DotTime         " << std::setw(12) << DotTime.count() << " us\n";
+	std::cout << "MaxTime         " << std::setw(12) << MaxTime.count() << " us\n";
+	std::cout << "TransposeTime   " << std::setw(12) << TransposeTime.count() << " us\n";
+	std::cout << "AddTime         " << std::setw(12) << AddTime.count() << " us\n";
+	std::cout << "SubtractTime    " << std::setw(12) << SubtractTime.count() << " us\n";
+	std::cout << "MulTime         " << std::setw(12) << MulTime.count() << " us\n";
+	std::cout << "DivisionTime    " << std::setw(12) << DivisionTime.count() << " us\n";
+	std::cout << "ExpTime         " << std::setw(12) << ExpTime.count() << " us\n";
+	std::cout << "LogTime         " << std::setw(12) << LogTime.count() << " us\n";
+	std::cout << "EqualsTime      " << std::setw(12) << EqualsTime.count() << " us\n";
+	std::cout << "ArgmaxTime      " << std::setw(12) << ArgmaxTime.count() << " us\n";
+	std::cout << "ReluFwdTime     " << std::setw(12) << ReluFwdTime.count() << " us\n";
+	std::cout << "ReluBwdTime     " << std::setw(12) << ReluBwdTime.count() << " us\n";
+	std::cout << "SoftMaxBwdTime  " << std::setw(12) << SoftMaxBwdTime.count() << " us\n";
 	return 0;
 }
 

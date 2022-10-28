@@ -14,7 +14,7 @@ public:
     int rows;
     int cols;
 
-    Matrix(int rows, int cols, dtype value = 0);
+    Matrix(int rows, int cols, dtype value = 0, bool memset = false);
     Matrix();
     ~Matrix();
 
@@ -82,7 +82,7 @@ Matrix<dtype> relu_fwd(Matrix<dtype> a);
 template <typename dtype>
 Matrix<dtype, dtype*> relu_bwd(Matrix<dtype, dtype*> a, Matrix<dtype, dtype*> b);
 
-void free();
+void _free();
 
 }
 #include "matrix.cu"
