@@ -356,6 +356,7 @@ matrix::Matrix<dtype, vtype> SoftmaxCrossEntropy<dtype, vtype>::backward(matrix:
     }
     matrix::SoftMaxBwdTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
     matrix::Matrix<dtype, vtype> temp(1, 1, dinput.rows);
+    matrix::SoftMaxBwdTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
     return matrix::division(dinput, temp);
 }
 

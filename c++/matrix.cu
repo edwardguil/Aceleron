@@ -734,6 +734,7 @@ Matrix<dtype> mul_const(Matrix<dtype> a, dtype b) {
 template <typename dtype>
 Matrix<int> argmax(Matrix<dtype> a) {
     // Finds idx of max value across axis=1 (rows)
+	auto StartTime = std::chrono::high_resolution_clock::now();
     Matrix<int> out(a.rows, 1);
 	auto StartTime = std::chrono::high_resolution_clock::now();
     dtype max;
