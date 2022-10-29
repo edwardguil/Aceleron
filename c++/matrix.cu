@@ -26,6 +26,10 @@ auto LogTime = std::chrono::microseconds::zero();
 auto EqualsTime = std::chrono::microseconds::zero();
 auto MallocTime = std::chrono::microseconds::zero();
 auto MemCpyTime = std::chrono::microseconds::zero();
+auto ArgmaxTime = std::chrono::microseconds::zero();
+auto ReluFwdTime = std::chrono::microseconds::zero();
+auto ReluBwdTime = std::chrono::microseconds::zero();
+auto SoftMaxBwdTime = std::chrono::microseconds::zero();
 
 
 /* Matrix<dtype>::Matrix()
@@ -43,7 +47,7 @@ auto MemCpyTime = std::chrono::microseconds::zero();
 * @value: the value to fill the matrix, defaults to 0.
 */
 template <typename dtype, typename vtype>
-Matrix<dtype, vtype>::Matrix(int rows, int cols, dtype value): matrix(rows*cols, value), 
+Matrix<dtype, vtype>::Matrix(int rows, int cols, dtype value, bool memset): matrix(rows*cols, value), 
 		rows(rows), cols(cols) {
 }
 
@@ -129,16 +133,18 @@ Matrix<dtype, vtype> Matrix<dtype, vtype>::copy() {
 * @value: the value to fill the matrix, defaults to 0.
 */
 template<>
-inline Matrix<double, double*>::Matrix(int rows, int cols, double value): 
+inline Matrix<double, double*>::Matrix(int rows, int cols, double value, bool memset): 
 		rows(rows), cols(cols) {
-	auto StartTime = std::chrono::high_resolution_clock::now();
+	// auto StartTime = std::chrono::high_resolution_clock::now();
 	cuda::checkError(cudaMalloc(&matrix, sizeof(double) * (rows * cols)));
-	MallocTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
-	StartTime = std::chrono::high_resolution_clock::now();
-	// For some readon cudaMemset doesn't work... have to do the slower method of setting...
-	std::vector<double> in(rows*cols, value);
-	cuda::checkError(cudaMemcpy(matrix, &(in[0]), sizeof(double) * (rows * cols), cudaMemcpyHostToDevice));
-	MemCpyTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
+	// MallocTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
+	if (memset) {
+		// StartTime = std::chrono::high_resolution_clock::now();
+		// For some readon cudaMemset doesn't work... have to do the slower method of setting...
+		std::vector<double> in(rows*cols, value);
+		cuda::checkError(cudaMemcpy(matrix, &(in[0]), sizeof(double) * (rows * cols), cudaMemcpyHostToDevice));
+		// MemCpyTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
+	}
 	//cuda::checkError(cudaMemset(matrix, value, sizeof(double) * (rows * cols)));
 }
 
@@ -158,9 +164,9 @@ inline Matrix<int, int*>::~Matrix() {}
 */
 template <>
 inline void Matrix<double, double*>::set_matrix(double* update) {
-	auto StartTime = std::chrono::high_resolution_clock::now();
+	// auto StartTime = std::chrono::high_resolution_clock::now();
 	cuda::checkError(cudaMemcpy(matrix, update, sizeof(double) * (rows * cols), cudaMemcpyHostToDevice));
-	MemCpyTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
+	// MemCpyTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
 }
 
 
@@ -175,7 +181,7 @@ inline void Matrix<double, double*>::set_matrix(double* update) {
 */
 template <>
 inline void Matrix<double, double*>::get_matrix(Matrix<double>& dest) {
-	auto StartTime = std::chrono::high_resolution_clock::now();
+	// auto StartTime = std::chrono::high_resolution_clock::now();
     cuda::checkError(cudaMemcpy(&(dest[0]), matrix, sizeof(double) * (rows * cols), cudaMemcpyDeviceToHost));
 }
 
@@ -186,10 +192,10 @@ inline void Matrix<double, double*>::get_matrix(Matrix<double>& dest) {
 */
 template <>
 inline double Matrix<double, double*>::get_idx(int i) {
-	auto StartTime = std::chrono::high_resolution_clock::now();
+	// auto StartTime = std::chrono::high_resolution_clock::now();
 	double value = 0;
 	cuda::checkError(cudaMemcpy(&value, matrix, sizeof(double), cudaMemcpyDeviceToHost));
-    MemCpyTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
+    // MemCpyTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
 	return value;
 }
 
@@ -201,10 +207,10 @@ inline double Matrix<double, double*>::get_idx(int i) {
 */
 template<>
 inline Matrix<double, double*> Matrix<double, double*>::copy() {
-	auto StartTime = std::chrono::high_resolution_clock::now();
+	// auto StartTime = std::chrono::high_resolution_clock::now();
     Matrix<double, double*> out(rows, cols);
     cuda::checkError(cudaMemcpy(out.get_matrix(), matrix, sizeof(double) * out.size(), cudaMemcpyDeviceToDevice));
-    MemCpyTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
+    // MemCpyTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
 	return out;
 }
 
@@ -221,16 +227,18 @@ inline Matrix<double, double*> Matrix<double, double*>::copy() {
 * @value: the value to fill the matrix, defaults to 0.
 */
 template<>
-inline Matrix<int, int*>::Matrix(int rows, int cols, int value): 
+inline Matrix<int, int*>::Matrix(int rows, int cols, int value, bool memset): 
 		rows(rows), cols(cols) {
-	auto StartTime = std::chrono::high_resolution_clock::now();
+	// auto StartTime = std::chrono::high_resolution_clock::now();
 	cuda::checkError(cudaMalloc(&matrix, sizeof(int) * (rows * cols)));
-	MallocTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
-	StartTime = std::chrono::high_resolution_clock::now();
-	// For some readon cudaMemset doesn't work... have to do the slower method of setting...
-	std::vector<int> in(rows*cols, value);
-	cuda::checkError(cudaMemcpy(matrix, &(in[0]), sizeof(int) * (rows * cols), cudaMemcpyHostToDevice));
-	MemCpyTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
+	// MallocTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
+	if (memset) {
+		// StartTime = std::chrono::high_resolution_clock::now();
+		// For some readon cudaMemset doesn't work... have to do the slower method of setting...
+		std::vector<int> in(rows*cols, value);
+		cuda::checkError(cudaMemcpy(matrix, &(in[0]), sizeof(int) * (rows * cols), cudaMemcpyHostToDevice));
+		// MemCpyTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
+	}
 	//cuda::checkError(cudaMemset(matrix, value, sizeof(double) * (rows * cols)));
 }
 
@@ -243,9 +251,9 @@ inline Matrix<int, int*>::Matrix(int rows, int cols, int value):
 */
 template <>
 inline void Matrix<int, int*>::set_matrix(int* update) {
-	auto StartTime = std::chrono::high_resolution_clock::now();
+	// auto StartTime = std::chrono::high_resolution_clock::now();
 	cuda::checkError(cudaMemcpy(matrix, update, sizeof(int) * (rows * cols), cudaMemcpyHostToDevice));
-	MemCpyTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
+	// MemCpyTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
 }
 
 
@@ -260,9 +268,9 @@ inline void Matrix<int, int*>::set_matrix(int* update) {
 */
 template <>
 inline void Matrix<int, int*>::get_matrix(Matrix<int>& dest) {
-	auto StartTime = std::chrono::high_resolution_clock::now();
+	// auto StartTime = std::chrono::high_resolution_clock::now();
     cuda::checkError(cudaMemcpy(&(dest[0]), matrix, sizeof(int) * (rows * cols), cudaMemcpyDeviceToHost));
-	MemCpyTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
+	// MemCpyTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
 }
 
 
@@ -272,10 +280,10 @@ inline void Matrix<int, int*>::get_matrix(Matrix<int>& dest) {
 */
 template <>
 inline int Matrix<int, int*>::get_idx(int i) {
-	auto StartTime = std::chrono::high_resolution_clock::now();
+	// auto StartTime = std::chrono::high_resolution_clock::now();
 	int value = 0;
 	cuda::checkError(cudaMemcpy(&value, matrix, sizeof(int), cudaMemcpyDeviceToHost));
-    MemCpyTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
+    // MemCpyTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
 	return value;
 }
 
@@ -288,10 +296,10 @@ inline int Matrix<int, int*>::get_idx(int i) {
 */
 template<>
 inline Matrix<int, int*> Matrix<int, int*>::copy() {
-	auto StartTime = std::chrono::high_resolution_clock::now();
+	// auto StartTime = std::chrono::high_resolution_clock::now();
     Matrix<int, int*> out(rows, cols);
     cuda::checkError(cudaMemcpy(out.get_matrix(), matrix, sizeof(int) * out.size(), cudaMemcpyDeviceToDevice));
-MemCpyTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
+// MemCpyTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
 	return out;
 }
 
@@ -358,10 +366,10 @@ inline void print(Matrix<dtype, dtype*> matrix) {
 */
 template <typename dtype>
 Matrix<dtype> dot(Matrix<dtype> a, Matrix<dtype> b) {
-	auto StartTime = std::chrono::high_resolution_clock::now();
     // a should be inputs
     // b should be weights
     Matrix<dtype> out(a.rows, b.cols);
+	auto StartTime = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < a.rows; i++) {
 	// For each sample
 		for (int j = 0; j < b.cols; j++) {
@@ -372,7 +380,7 @@ Matrix<dtype> dot(Matrix<dtype> a, Matrix<dtype> b) {
 				}
 		}
     }
-	DotTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
+	DotTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
     return out;
 }
 
@@ -390,9 +398,10 @@ Matrix<dtype> dot(Matrix<dtype> a, Matrix<dtype> b) {
 */
 template <typename dtype>
 Matrix<dtype> max(Matrix<dtype> a) {
-	auto StartTime = std::chrono::high_resolution_clock::now();
+	// auto StartTime = std::chrono::high_resolution_clock::now();
     // keepdims = true
     Matrix<dtype> maxValues(a.rows, 1, (dtype) -INT_MAX); 
+	auto StartTime = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < a.rows; i++) {
 		for (int j = 0; j < a.cols; j++) {
 			if (a[i*a.cols + j] > maxValues[i]) {
@@ -400,7 +409,7 @@ Matrix<dtype> max(Matrix<dtype> a) {
 			}
 		}
     }
-	MaxTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
+	MaxTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
     return maxValues;
 }
 
@@ -422,38 +431,39 @@ Matrix<dtype> max(Matrix<dtype> a) {
 *
 */
 template <typename dtype>
-Matrix<dtype> sum(Matrix<dtype> a, int axis, bool keepdims) {
-	auto StartTime = std::chrono::high_resolution_clock::now();
-	
+Matrix<dtype> sum(Matrix<dtype> a, int axis, bool keepdims) {	
     // Default axis=1 and keepdims=true
     if (keepdims) {
 		if (axis) {
 			Matrix<dtype> out(a.rows, 1); 
+			auto StartTime = std::chrono::high_resolution_clock::now();
 			for (int i = 0; i < a.rows; i++) {
 				for (int j = 0; j < a.cols; j++) {
 					out[i] += a[i*a.cols + j];
 				}
 			}
-			SumTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
+			SumTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
 			return out;
 		} else {
 			Matrix<dtype> out(1, a.cols);
+			auto StartTime = std::chrono::high_resolution_clock::now();
 			for (int i = 0; i < a.rows; i++) {
 				for (int j = 0; j < a.cols; j++) {
 					out[j] += a[i*a.cols + j];
 				}
 			}
-			SumTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
+			SumTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
 			return out;
 		}
     } else {
 		Matrix<dtype> out(1, 1);
+		auto StartTime = std::chrono::high_resolution_clock::now();
 		for (int i = 0; i < a.rows; i++) {
 			for (int j = 0; j < a.cols; j++) {
 				out[0] += a[i*a.cols + j];
 			}
 		}
-		SumTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
+		SumTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
 		return out;
     }
     //return a;
@@ -470,14 +480,14 @@ Matrix<dtype> sum(Matrix<dtype> a, int axis, bool keepdims) {
 */
 template <typename dtype>
 Matrix<dtype> transpose(Matrix<dtype> a) {
-	auto StartTime = std::chrono::high_resolution_clock::now();
     Matrix<dtype> out(a.cols, a.rows);
+	auto StartTime = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < a.rows; i++) {
 		for (int j = 0; j < a.cols; j++) {
 			out[j*out.cols + i] = a[i*a.cols + j];
 		}
     }
-	TransposeTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
+	TransposeTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
     return out;
 
 }
@@ -502,14 +512,16 @@ Matrix<dtype> transpose(Matrix<dtype> a) {
 *		function. Will be of shape (a.rows, b.cols)
 */
 template <typename dtype, typename Operator>
-Matrix<dtype> matrix_general(Matrix<dtype> a, Matrix<dtype> b, Operator op) {
+Matrix<dtype> matrix_general(Matrix<dtype> a, Matrix<dtype> b, Operator op, std::chrono::duration<int64_t, std::micro>&  WhateverTiming) {
     Matrix<dtype> out(a.rows, a.cols);
+	auto StartTime = std::chrono::high_resolution_clock::now();
     if (a.rows == b.rows && a.cols == b.cols) {
 		for (int i = 0; i < a.rows; i++) {
 			for (int j = 0; j < a.cols; j++) {
 				out[i*out.cols + j] = op(a[i*a.cols + j], b[i*a.cols + j]);
 			}
 		}
+		WhateverTiming += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
     }
     else if (a.cols == b.cols && b.rows == 1) {
 		for (int i = 0; i < a.rows; i++) {
@@ -517,18 +529,21 @@ Matrix<dtype> matrix_general(Matrix<dtype> a, Matrix<dtype> b, Operator op) {
 					out[i*out.cols + j] = op(a[i*a.cols + j], b[j]);
 				}
 		}
+		WhateverTiming += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime);
     } else if (a.rows == b.rows && b.cols == 1) {
 		for (int i = 0; i < a.rows; i++) {
 				for (int j = 0; j < a.cols; j++) {
 					out[i*out.cols + j] = op(a[i*a.cols + j], b[i]);
 				}
 		}
+		WhateverTiming += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime);
     } else if (b.rows == 1 && b.cols == 1) {
 		for (int i = 0; i < a.rows; i++) {
 			for (int j = 0; j < a.cols; j++) {
 				out[i*out.cols + j] = op(a[i*a.cols + j], b[0]);
 			}
 		}
+		WhateverTiming += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime);
     } else {
 		return a;
     }
@@ -547,11 +562,11 @@ Matrix<dtype> matrix_general(Matrix<dtype> a, Matrix<dtype> b, Operator op) {
 */
 template <typename dtype>
 Matrix<dtype> add(Matrix<dtype> a, Matrix<dtype> b) {
-	auto StartTime = std::chrono::high_resolution_clock::now();
+	// auto StartTime = std::chrono::high_resolution_clock::now();
     Matrix<dtype> out = matrix_general(a, b, [](dtype x, dtype y){
 		return x + y;
-    });
-	AddTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
+    }, AddTime);
+	// AddTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
 	return out;
 
 }
@@ -568,11 +583,11 @@ Matrix<dtype> add(Matrix<dtype> a, Matrix<dtype> b) {
 */
 template <typename dtype> 
 Matrix<dtype> subtract(Matrix<dtype> a, Matrix<dtype> b) {
-	auto StartTime = std::chrono::high_resolution_clock::now();
+	// auto StartTime = std::chrono::high_resolution_clock::now();
     Matrix<dtype> out = matrix_general(a, b, [](dtype x, dtype y){
 		return x - y;
-    });
-	SubtractTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
+    }, SubtractTime);
+	// SubtractTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
 	return out;
 }
 
@@ -588,11 +603,11 @@ Matrix<dtype> subtract(Matrix<dtype> a, Matrix<dtype> b) {
 */
 template <typename dtype>
 Matrix<dtype> mul(Matrix<dtype> a, Matrix<dtype> b) {
-	auto StartTime = std::chrono::high_resolution_clock::now();
-	MulTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
+	// auto StartTime = std::chrono::high_resolution_clock::now();
+	// MulTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
 	Matrix<dtype> out = matrix_general(a, b, [](dtype x, dtype y){
 		return x * y;
-    });
+    }, MulTime);
 	return out;
 
 }
@@ -609,12 +624,11 @@ Matrix<dtype> mul(Matrix<dtype> a, Matrix<dtype> b) {
 */
 template <typename dtype> 
 Matrix<dtype> division(Matrix<dtype> a, Matrix<dtype> b) {
-	auto StartTime = std::chrono::high_resolution_clock::now();
-
+	// auto StartTime = std::chrono::high_resolution_clock::now();
 	Matrix<dtype> out = matrix_general(a, b, [](dtype x, dtype y){
 		return x / y;
-    });
-	DivisionTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
+    }, DivisionTime);
+	// DivisionTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
 	return out;
 
 }
@@ -632,11 +646,11 @@ Matrix<dtype> division(Matrix<dtype> a, Matrix<dtype> b) {
 Matrix<int> equals(Matrix<int> a, Matrix<int> b) {
     // This is only defined for when both inputs are Matrix<int>
     // Can also utlizie |x - y| < EPISLON. 
-	auto StartTime = std::chrono::high_resolution_clock::now();
+	// auto StartTime = std::chrono::high_resolution_clock::now();
 	Matrix<int> out = matrix_general(a, b, [](int x, int y){
 		return x == y;
-    });
-	EqualsTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
+    }, EqualsTime);
+	// EqualsTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
     return out;
 }
 
@@ -652,14 +666,14 @@ Matrix<int> equals(Matrix<int> a, Matrix<int> b) {
 */
 template <typename dtype>
 Matrix<dtype> exp(Matrix<dtype> a) {
-	auto StartTime = std::chrono::high_resolution_clock::now();
     Matrix<dtype> out(a.rows, a.cols);
+	auto StartTime = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < a.rows; i++) {
 		for (int j = 0; j < a.cols; j++) {
 			out[i*out.cols + j] = std::exp(a[i*a.cols + j]);
 		}
     }
-	ExpTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
+	ExpTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
     return out;
 
 }
@@ -675,14 +689,14 @@ Matrix<dtype> exp(Matrix<dtype> a) {
 */
 template <typename dtype>
 Matrix<dtype> log(Matrix<dtype> a) {
-	auto StartTime = std::chrono::high_resolution_clock::now();
     Matrix<dtype> out(a.rows, a.cols);
+	auto StartTime = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < a.rows; i++) {
 		for (int j = 0; j < a.cols; j++) {
 			out[i*out.cols + j] = std::log(a[i*a.cols + j]);
 		}
     }
-	LogTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
+	LogTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
     return out;
 }
 
@@ -697,15 +711,14 @@ Matrix<dtype> log(Matrix<dtype> a) {
 */
 template <typename dtype>
 Matrix<dtype> mul_const(Matrix<dtype> a, dtype b) {
-	auto StartTime = std::chrono::high_resolution_clock::now();
-	
     Matrix<dtype> out(a.rows, a.cols);
+	auto StartTime = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < a.rows; i++) {
 		for (int j = 0; j < a.cols; j++) {
 			out[i*out.cols + j] = a[i*a.cols + j] * (float) b;
 		}
     }
-	MulConstTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
+	MulConstTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
     return out;
 }
 
@@ -722,6 +735,7 @@ template <typename dtype>
 Matrix<int> argmax(Matrix<dtype> a) {
     // Finds idx of max value across axis=1 (rows)
     Matrix<int> out(a.rows, 1);
+	auto StartTime = std::chrono::high_resolution_clock::now();
     dtype max;
     for (int i = 0; i < a.rows; i++) {
 		max = a[i*a.cols];
@@ -731,6 +745,7 @@ Matrix<int> argmax(Matrix<dtype> a) {
 			}
 		}
     }
+	ArgmaxTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
     return out;
 }
 
@@ -762,61 +777,57 @@ int loop_case(int arows, int acols, int brows, int bcols) {
 */
 template <typename dtype>
 Matrix<dtype, dtype*> dot(Matrix<dtype, dtype*> a, Matrix<dtype, dtype*> b) {
-	auto StartTime = std::chrono::high_resolution_clock::now();
     // a should be inputs
     // b should be weights
     Matrix<dtype, dtype*> out(a.rows, b.cols);
+	// auto StartTime = std::chrono::high_resolution_clock::now();
 	int threads = 32;
 	dim3 block(threads, threads);
     dim3 grid((a.rows+threads-1)/threads, (b.cols+threads-1)/threads);
 	cuda::dot<<<grid, block>>>(a.rows, b.cols, b.rows, a.get_matrix(), b.get_matrix(), out.get_matrix());
 	_FREE.push_back(out.get_matrix());
-				DotTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
-
+	// DotTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
 	return out;
 }
 
 
 template <typename dtype>
-Matrix<dtype, dtype*> max(Matrix<dtype, dtype*> a) {
-	auto StartTime = std::chrono::high_resolution_clock::now();
-	
+Matrix<dtype, dtype*> max(Matrix<dtype, dtype*> a) {	
 	Matrix<dtype, dtype*> out(a.rows, 1, (dtype) -INT_MAX);
+	// auto StartTime = std::chrono::high_resolution_clock::now();
 	int threads = 1024;
 	int blocks = (a.rows+threads-1)/threads;
 	cuda::max<<<blocks, threads>>>(a.rows, a.cols, a.get_matrix(), out.get_matrix());
 	_FREE.push_back(out.get_matrix());
-				MaxTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
-
+	// MaxTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
 	return out;
 }
 
 template <typename dtype>
 Matrix<dtype, dtype*> sum(Matrix<dtype, dtype*> a, int axis, bool keepdims) {
-	auto StartTime = std::chrono::high_resolution_clock::now();
-	
 	int threads = 1024;
 	if (keepdims) {
 		if (axis) {
 			Matrix<dtype, dtype*> out(a.rows, 1); 
+			// auto StartTime = std::chrono::high_resolution_clock::now();
 			int blocks = (a.rows+threads-1)/threads;
 			cuda::sum_keepdims_1<<<blocks, threads>>>(a.rows, a.cols, a.get_matrix(), out.get_matrix());
 			_FREE.push_back(out.get_matrix());
-						SumTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
-
+			// SumTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
 			return out;
 		} else {
 			Matrix<dtype, dtype*> out(1, a.cols);
+			// auto StartTime = std::chrono::high_resolution_clock::now();
 			int blocks = (a.cols+threads-1)/threads;
 			cuda::sum_keepdims_0<<<blocks, threads>>>(a.rows, a.cols, a.get_matrix(), out.get_matrix());
 			_FREE.push_back(out.get_matrix());
-			SumTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
-
+			// SumTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
 			return out;
 		}
     } else {
 		int blocks = (a.cols*a.rows + threads - 1) / threads;
 		Matrix<dtype, dtype*> out(1, blocks);
+		// auto StartTime = std::chrono::high_resolution_clock::now();
 		cuda::sum_reduce<<<blocks, threads, sizeof(dtype) * threads>>>(a.rows*a.cols, a.get_matrix(), out.get_matrix());
 		while (blocks > 1) {
 			// Largest N in current dataset is 1000, so this will never get called THIS MAY NOT WORK!!!. 
@@ -825,177 +836,179 @@ Matrix<dtype, dtype*> sum(Matrix<dtype, dtype*> a, int axis, bool keepdims) {
 			out.cols = blocks;
 		}
 		_FREE.push_back(out.get_matrix());
-					SumTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
-
+		// SumTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
 		return out;
     }
 }
 
 template <typename dtype>
 Matrix<dtype, dtype*> transpose(Matrix<dtype, dtype*> a) {
-	auto StartTime = std::chrono::high_resolution_clock::now();
-	
 	Matrix<dtype, dtype*> out(a.cols, a.rows); 
+	// auto StartTime = std::chrono::high_resolution_clock::now();
 	int threads = 32;
 	dim3 block(threads, threads);
 	dim3 grid((a.rows+threads-1)/threads, (a.cols+threads-1)/threads);
 	cuda::transpose<<<grid, block>>>(a.rows, a.cols, a.get_matrix(), out.get_matrix());
 	_FREE.push_back(out.get_matrix());
-		TransposeTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
-
+	// TransposeTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
 	return out;
 }
 
 template <typename dtype>
 Matrix<dtype, dtype*> add(Matrix<dtype, dtype*> a, Matrix<dtype, dtype*> b) {
-	auto StartTime = std::chrono::high_resolution_clock::now();
-	
 	Matrix<dtype, dtype*> out(a.rows, a.cols); 
+	// auto StartTime = std::chrono::high_resolution_clock::now();
 	int threads = 32;
 	dim3 block(threads, threads);
 	dim3 grid((a.rows+threads-1)/threads, (a.cols+threads-1)/threads);
 	int loop = loop_case(a.rows, a.cols, b.rows, b.cols);
 	cuda::add<<<grid, block>>>(a.rows, a.cols, loop, a.get_matrix(), b.get_matrix(), out.get_matrix());
 	_FREE.push_back(out.get_matrix());
-		AddTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
-
+		// AddTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
 	return out;
 }
 
 template <typename dtype>
 Matrix<dtype, dtype*> subtract(Matrix<dtype, dtype*> a, Matrix<dtype, dtype*> b) {
-	auto StartTime = std::chrono::high_resolution_clock::now();
 	Matrix<dtype, dtype*> out(a.rows, a.cols); 
+	// auto StartTime = std::chrono::high_resolution_clock::now();
 	int threads = 32;
 	dim3 block(threads, threads);
 	dim3 grid((a.rows+threads-1)/threads, (a.cols+threads-1)/threads);
 	int loop = loop_case(a.rows, a.cols, b.rows, b.cols);
 	cuda::subtract<<<grid, block>>>(a.rows, a.cols, loop, a.get_matrix(), b.get_matrix(), out.get_matrix());
 	_FREE.push_back(out.get_matrix());
-		SubtractTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
-
+	// SubtractTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
 	return out;
 }
 
 template <typename dtype>
 Matrix<dtype, dtype*> mul(Matrix<dtype, dtype*> a, Matrix<dtype, dtype*> b) {
-	auto StartTime = std::chrono::high_resolution_clock::now();
 	Matrix<dtype, dtype*> out(a.rows, a.cols); 
+	// auto StartTime = std::chrono::high_resolution_clock::now();	
 	int threads = 32;
 	dim3 block(threads, threads);
 	dim3 grid((a.rows+threads-1)/threads, (a.cols+threads-1)/threads);
 	int loop = loop_case(a.rows, a.cols, b.rows, b.cols);
 	cuda::mul<<<grid, block>>>(a.rows, a.cols, loop, a.get_matrix(), b.get_matrix(), out.get_matrix());
 	_FREE.push_back(out.get_matrix());
-	MulTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
+	// MulTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
 	return out;
 }
 
 template <typename dtype>
 Matrix<dtype, dtype*> division(Matrix<dtype, dtype*> a, Matrix<dtype, dtype*> b) {
-	auto StartTime = std::chrono::high_resolution_clock::now();
 	Matrix<dtype, dtype*> out(a.rows, a.cols); 
+	// auto StartTime = std::chrono::high_resolution_clock::now();
 	int threads = 32;
 	dim3 block(threads, threads);
 	dim3 grid((a.rows+threads-1)/threads, (a.cols+threads-1)/threads);
 	int loop = loop_case(a.rows, a.cols, b.rows, b.cols);
 	cuda::division<<<grid, block>>>(a.rows, a.cols, loop, a.get_matrix(), b.get_matrix(), out.get_matrix());
 	_FREE.push_back(out.get_matrix());
-	DivisionTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
+	// DivisionTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
 	return out;
 }
 
 Matrix<int, int*> equals(Matrix<int, int*> a, Matrix<int, int*> b) {
-	auto StartTime = std::chrono::high_resolution_clock::now();
 	Matrix<int, int*> out(a.rows, a.cols); 
+	// auto StartTime = std::chrono::high_resolution_clock::now();
 	int threads = 32;
 	dim3 block(threads, threads);
 	dim3 grid((a.rows+threads-1)/threads, (a.cols+threads-1)/threads);
 	int loop = loop_case(a.rows, a.cols, b.rows, b.cols);
 	cuda::cuda_equals<<<grid, block>>>(a.rows, a.cols, loop, a.get_matrix(), b.get_matrix(), out.get_matrix());
 	_FREE.push_back(out.get_matrix());
-	EqualsTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
+	// EqualsTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
 	return out;
 }
 
 template <typename dtype>
 Matrix<dtype, dtype*> exp(Matrix<dtype, dtype*> a) {
-	auto StartTime = std::chrono::high_resolution_clock::now();
 	Matrix<dtype, dtype*> out(a.rows, a.cols); 
+	// auto StartTime = std::chrono::high_resolution_clock::now();
 	int threads = 32;
 	dim3 block(threads, threads);
 	dim3 grid((a.rows+threads-1)/threads, (a.cols+threads-1)/threads);
 	cuda::cuda_exp<<<grid, block>>>(a.rows, a.cols, a.get_matrix(), out.get_matrix());
 	_FREE.push_back(out.get_matrix());
-	ExpTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
+	// ExpTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
 	return out;
 }
 
 template <typename dtype>
 Matrix<dtype, dtype*> log(Matrix<dtype, dtype*> a) {
-	auto StartTime = std::chrono::high_resolution_clock::now();
 	Matrix<dtype, dtype*> out(a.rows, a.cols); 
+	// auto StartTime = std::chrono::high_resolution_clock::now();
 	int threads = 32;
 	dim3 block(threads, threads);
 	dim3 grid((a.rows+threads-1)/threads, (a.cols+threads-1)/threads);
 	cuda::cuda_log<<<grid, block>>>(a.rows, a.cols, a.get_matrix(), out.get_matrix());
 	_FREE.push_back(out.get_matrix());
-	LogTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
+	// LogTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
 	return out;
 }
 
 template <typename dtype>
 Matrix<dtype, dtype*> mul_const(Matrix<dtype, dtype*> a, dtype b) {
-	auto StartTime = std::chrono::high_resolution_clock::now();
 	Matrix<dtype, dtype*> out(a.rows, a.cols); 
+	// auto StartTime = std::chrono::high_resolution_clock::now();
 	int threads = 32;
 	dim3 block(threads, threads);
 	dim3 grid((a.rows+threads-1)/threads, (a.cols+threads-1)/threads);
 	cuda::mul_const<<<grid, block>>>(a.rows, a.cols, b, a.get_matrix(), out.get_matrix());
 	_FREE.push_back(out.get_matrix());
-	MulConstTime += std::chrono::duration_cast<std::chrono::microseconds>(StartTime - std::chrono::high_resolution_clock::now());
+	// MulConstTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
 	return out;
 }
 
 template <typename dtype>
 Matrix<int, int*> argmax(Matrix<dtype, dtype*> a) {
 	Matrix<int, int*> out(a.rows, 1);
+	// auto StartTime = std::chrono::high_resolution_clock::now();
 	int threads = 1024;
 	int blocks = (a.rows+threads-1)/threads;
 	cuda::argmax<<<blocks, threads>>>(a.rows, a.cols, a.get_matrix(), out.get_matrix());
 	_FREE.push_back(out.get_matrix());
+	// ArgmaxTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
 	return out;
 }
 
 template <typename dtype>
 Matrix<dtype, dtype*> relu_fwd(Matrix<dtype, dtype*> a) {
 	Matrix<dtype, dtype*> out(a.rows, a.cols); 
+	// auto StartTime = std::chrono::high_resolution_clock::now();
 	int threads = 32;
 	dim3 block(threads, threads);
 	dim3 grid((a.rows+threads-1)/threads, (a.cols+threads-1)/threads);
 	cuda::relu_fwd<<<grid, block>>>(a.rows, a.cols, a.get_matrix(), out.get_matrix());
 	_FREE.push_back(out.get_matrix());
+	// ReluFwdTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
 	return out;
 }
 
 template <typename dtype>
 Matrix<dtype, dtype*> relu_bwd(Matrix<dtype, dtype*> a, Matrix<dtype, dtype*> b) {
 	Matrix<dtype, dtype*> out(a.rows, a.cols); 
+	// auto StartTime = std::chrono::high_resolution_clock::now();
 	int threads = 32;
 	dim3 block(threads, threads);
 	dim3 grid((a.rows+threads-1)/threads, (a.cols+threads-1)/threads);
 	cuda::relu_bwd<<<grid, block>>>(a.rows, a.cols, a.get_matrix(), b.get_matrix(), out.get_matrix());
 	_FREE.push_back(out.get_matrix());
+	// ReluBwdTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
 	return out;
 }
 
 template <typename dtype>
 Matrix<dtype, dtype*> softmax_bwd(Matrix<dtype, dtype*> a, Matrix<int, int*> b) {
 	Matrix<dtype, dtype*> out(a.rows, a.cols); 
+	// auto StartTime = std::chrono::high_resolution_clock::now();
 	int threads = 1024;
 	int blocks = (a.rows+threads-1)/threads;
 	cuda::softmax_bwd<<<blocks, threads>>>(a.rows, a.cols, a.get_matrix(), b.get_matrix(), a.get_matrix());
 	_FREE.push_back(out.get_matrix());
+	// SoftMaxBwdTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
 	return a;
 }
 
