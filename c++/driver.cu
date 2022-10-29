@@ -35,8 +35,6 @@ int handle_N(int N);
 */
 int main(int argc, char *argv[]) {
 	// Start clocks for profiling
-	auto StartTime = std::chrono::high_resolution_clock::now();
-	auto TotalFreeTime = std::chrono::microseconds::zero();
 	// Handle command line input
 	int N = argc > 1 ? handle_N(std::stoi(argv[1])) : 1000;
 	std::cout << "N: " << N << std::endl;
@@ -57,7 +55,6 @@ int main(int argc, char *argv[]) {
     SoftmaxCrossEntropy<> layer4;
     optimizer::SGD<> sgd(1.0, 0.001);
 
-	auto SetupTime = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime);
 
 	// Main algorithimic loop
     for (int i = 0; i < 2001; i++) {
@@ -88,38 +85,15 @@ int main(int argc, char *argv[]) {
 			double losstest = layer4.get_loss();
 			double acctest = metric::accuracy(y_test, outtest4);
 
-			if (i + 1 == 2001) {
-				std::cout << "epoch: " << i;
-				std::cout << ", acc: " << std::setprecision(3) << acc;
-				std::cout << ", loss: " << std::setprecision(3) << loss;
-				std::cout << ", acc_test: " << std::setprecision(3) << acctest;
-				std::cout << ", loss_test: " << std::setprecision(3) << losstest;
-				std::cout << ", lr: " << std::fixed << std::setprecision(3) << sgd.get_lr() << std::endl;
-			}
+			std::cout << "epoch: " << i;
+			std::cout << ", acc: " << std::setprecision(3) << acc;
+			std::cout << ", loss: " << std::setprecision(3) << loss;
+			std::cout << ", acc_test: " << std::setprecision(3) << acctest;
+			std::cout << ", loss_test: " << std::setprecision(3) << losstest;
+			std::cout << ", lr: " << std::fixed << std::setprecision(3) << sgd.get_lr() << std::endl;
 		}
 
     }
-	auto FinishTime = std::chrono::high_resolution_clock::now();
-	auto TotalTime = std::chrono::duration_cast<std::chrono::microseconds>(FinishTime - StartTime);
-	std::cout << "TotalTime       " << std::setw(12) << TotalTime.count() << " us\n";
-	std::cout << "SetupTime       " << std::setw(12) << SetupTime.count() << " us\n";
-	std::cout << "FreeTime        " << std::setw(12) << TotalFreeTime.count() << " us\n";
-	std::cout << "MallocTime      " << std::setw(12) << MallocTime.count() << " us\n";
-	std::cout << "MemCpyTime      " << std::setw(12) << MemCpyTime.count() << " us\n";
-	std::cout << "DotTime         " << std::setw(12) << DotTime.count() << " us\n";
-	std::cout << "MaxTime         " << std::setw(12) << MaxTime.count() << " us\n";
-	std::cout << "TransposeTime   " << std::setw(12) << TransposeTime.count() << " us\n";
-	std::cout << "AddTime         " << std::setw(12) << AddTime.count() << " us\n";
-	std::cout << "SubtractTime    " << std::setw(12) << SubtractTime.count() << " us\n";
-	std::cout << "MulTime         " << std::setw(12) << MulTime.count() << " us\n";
-	std::cout << "DivisionTime    " << std::setw(12) << DivisionTime.count() << " us\n";
-	std::cout << "ExpTime         " << std::setw(12) << ExpTime.count() << " us\n";
-	std::cout << "LogTime         " << std::setw(12) << LogTime.count() << " us\n";
-	std::cout << "EqualsTime      " << std::setw(12) << EqualsTime.count() << " us\n";
-	std::cout << "ArgmaxTime      " << std::setw(12) << ArgmaxTime.count() << " us\n";
-	std::cout << "ReluFwdTime     " << std::setw(12) << ReluFwdTime.count() << " us\n";
-	std::cout << "ReluBwdTime     " << std::setw(12) << ReluBwdTime.count() << " us\n";
-	std::cout << "SoftMaxBwdTime  " << std::setw(12) << SoftMaxBwdTime.count() << " us\n";
     
 	return 0;
 }

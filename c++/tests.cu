@@ -4,6 +4,7 @@
 #include <cxxabi.h>
 #endif
 #include <memory>
+#include <cmath>
 #include <string>
 #include <cstdlib>
 #include <limits>
@@ -11,7 +12,6 @@
 #include <iostream>
 #include <string>
 #include <cassert>
-
 #include "matrix.h"
 #include "losses.h"
 #include "layers.h"
@@ -23,97 +23,554 @@
 
 using namespace matrix;
 // ----------------------------------- SETUP ------------------------------------------------------ //
-int N = 100;
-int train_size = N * 0.8;
+double N = 100;
 double DBL_EPSILON = std::numeric_limits<double>::epsilon();
-
-Matrix<double, double*> x_train_device(train_size, 2);
-Matrix<double, double*> y_train_device(train_size, 2);
-Matrix<double, double*> weights_device(2, 4);
-Matrix<double, double*> biases_device(1, 4, 1);
-
-Matrix<double> x_train(train_size, 2);
-Matrix<double> y_train(train_size, 2);
-Matrix<double> weights(2, 4);
-Matrix<double> biases(1, 4, 1);
-
 template <class T>
 std::string type_name();
-
-bool equals(Matrix<double, std::vector<double, std::allocator<double>>>& a, 
-        Matrix<double, std::vector<double, std::allocator<double>>>& b);
+// ----------------------------------- Helper Functions--------------------------------------------- //
 bool equals(Matrix<double, std::vector<double, std::allocator<double>>>& a, 
         Matrix<double, double*>& b);
+bool equals(Matrix<int, std::vector<int, std::allocator<int>>>& a, 
+        Matrix<int, int*>& b);
+
+
 bool nearly_equal(double a, double b);
 void randomize(Matrix<double>& a);
+double round_up(double value, int decimal_places);
 // ----------------------------------- ------------------------------------------------------ //
 
 // -----------------------------------TESTS ------------------------------------------------------ //
 void test_dot();
 
-void test_add_case1();
-void test_add_case2();
-void test_add_case3();
-
-void test_subtract_case1();
-void test_subtract_case2();
-void test_subtract_case3();
-
-void test_mul_case1();
-void test_mul_case2();
-void test_mul_case3();
-
-void test_divide_case1();
-void test_divide_case2();
-void test_divide_case3();
+void test_max();
 
 void test_sum_keepdims_0();
 void test_sum_keepdims_1();
 void test_sum_reduce();
+
+void test_transpose();
+
+void test_add_case1();
+void test_add_case2();
+void test_add_case3();
+void test_add_case4();
+
+void test_subtract_case1();
+void test_subtract_case2();
+void test_subtract_case3();
+void test_subtract_case4();
+
+void test_division_case1();
+void test_division_case2();
+void test_division_case3();
+void test_division_case4();
+
+void test_mul_case1();
+void test_mul_case2();
+void test_mul_case3();
+void test_mul_case4();
+
+void test_equals_case1();
+void test_equals_case2();
+void test_equals_case3();
+void test_equals_case4();
+
 void test_exp();
 void test_log();
+void test_mul_const();
+void test_argmax();
+
 // ------------------------------------------------------------------------------------------------ //
-
-
-
 
 
 /* main()
 * -----
 */
 int main(int argc, char *argv[]) {
-	// This function allocates the data to these matrices
-    x_train_device.set_matrix(&(x_train_raw_100[0]));
-    y_train_device.set_matrix(&(y_train_raw_100[0]));
-    x_train.set_matrix(x_train_raw_100);
-    y_train.set_matrix(y_train_raw_100);
-    randomize(weights);
-    
-    weights_device.set_matrix((double*) &(weights.get_matrix()[0]));
-
-
-    // assert(equals(x_train, x_train_device));
-    // assert(equals(y_train, y_train_device));
-    // assert(equals(weights, weights_device));
-
     test_dot();
+
+    test_max();
+    test_sum_keepdims_0();
+    test_sum_keepdims_1();
+    test_sum_reduce();
+    test_transpose();
+        
+    test_add_case1();
+    test_add_case2();
+    test_add_case3();
+    test_add_case4();
+
+    test_subtract_case1();
+    test_subtract_case2();
+    test_subtract_case3();
+    test_subtract_case4();
+
+    test_division_case1();
+    test_division_case2();
+    test_division_case3();
+    test_division_case4();
+
+    test_mul_case1();
+    test_mul_case2();
+    test_mul_case3();
+    test_mul_case4();
+
+    test_equals_case1();
+    test_equals_case2();
+    test_equals_case3();
+    test_equals_case4();
+
+    test_exp();
+    test_log();
+    test_mul_const();
+    test_argmax();
+    std::cout << "Well Done! All tests have passed.\n" <<   R"V0G0N(
+          __
+     w  c(..)o   (
+      \__(-)    __)
+          /\   (
+         /(_)___)
+         w /|
+          | \
+          m  m
+
+
+    )V0G0N" << "Go For A Boogey!" << std::endl;
+
 }
 
 void test_dot() {
-    Matrix<double> actual = dot(x_train, weights);
-    Matrix<double, double*> attempt = dot(x_train_device, weights_device);
+    Matrix<double> a(10, 4, 1);
+    Matrix<double> b(4, 10, 2);
+    Matrix<double, double*> a_d(10, 4, 1, true);
+    Matrix<double, double*> b_d(4, 10, 2, true);
+
+    Matrix<double> actual = dot(a, b);
+    Matrix<double, double*> attempt = dot(a_d, b_d);
 
     assert(actual.rows == attempt.rows && actual.cols == attempt.cols);
     assert(equals(actual, attempt));
+    _free();
+}
+
+void test_max() {
+    Matrix<double> a(4, 4);
+    randomize(a);
+    Matrix<double, double*> a_d(4, 4);
+    a_d.set_matrix(&a.get_matrix()[0]);
+
+    Matrix<double> actual = max(a);
+    Matrix<double, double*> attempt = max(a_d);
+
+    assert(actual.rows == attempt.rows && actual.cols == attempt.cols);
+    assert(equals(actual, attempt));
+    _free();
 }
 
 
-bool equals(Matrix<double, std::vector<double, std::allocator<double>>>& a, 
-        Matrix<double, std::vector<double, std::allocator<double>>>& b) {
-    for (int i = 0; i < a.rows; ++i) {
-        for (int j = 0; j < a.cols; ++j) {
-            if (!(std::fabs(a[i*a.rows + j] - b[i*a.rows + j]) < DBL_EPSILON)) {
-                std::cout << "a != b - " << a[i*a.rows + j] << " != " << b[i*a.rows + j] << std::endl;
+void test_sum_keepdims_0() {
+    Matrix<double> a(4, 4);
+    randomize(a);
+    Matrix<double, double*> a_d(4, 4);
+    a_d.set_matrix(&a.get_matrix()[0]);
+
+    Matrix<double> actual = sum(a, 0, true);
+    Matrix<double, double*> attempt = sum(a_d, 0, true);
+
+    assert(actual.rows == attempt.rows && actual.cols == attempt.cols);
+    assert(equals(actual, attempt));
+    _free();
+}
+
+
+void test_sum_keepdims_1() {
+    Matrix<double> a(4, 4);
+    randomize(a);
+    Matrix<double, double*> a_d(4, 4);
+    a_d.set_matrix(&a.get_matrix()[0]);
+
+    Matrix<double> actual = sum(a, 1, true);
+    Matrix<double, double*> attempt = sum(a_d, 1, true);
+
+    assert(actual.rows == attempt.rows && actual.cols == attempt.cols);
+    assert(equals(actual, attempt));
+    _free();
+}
+
+void test_sum_reduce() {
+    Matrix<double> a(4, 4);
+    randomize(a);
+    Matrix<double, double*> a_d(4, 4);
+    a_d.set_matrix(&a.get_matrix()[0]);
+
+    Matrix<double> actual = sum(a, 1, false);
+    Matrix<double, double*> attempt = sum(a_d, 1, false);
+
+    assert(actual.rows == attempt.rows && actual.cols == attempt.cols);
+    assert(equals(actual, attempt));
+    _free();
+}
+
+void test_transpose() {
+    Matrix<double> a(1, 4);
+    randomize(a);
+    Matrix<double, double*> a_d(1, 4);
+    a_d.set_matrix(&a.get_matrix()[0]);
+
+    Matrix<double> actual = transpose(a);
+    Matrix<double, double*> attempt = transpose(a_d);
+
+    assert(actual.rows == attempt.rows && actual.cols == attempt.cols);
+    assert(equals(actual, attempt));
+    _free();
+}
+
+void test_add_case1() {
+    Matrix<double> a(4, 4, 1);
+    Matrix<double> b(4, 4, 2);
+    Matrix<double, double*> a_d(4, 4, 1, true);
+    Matrix<double, double*> b_d(4, 4, 2, true);
+
+    Matrix<double> actual = add(a, b);
+    Matrix<double, double*> attempt = add(a_d, b_d);
+
+    assert(actual.rows == attempt.rows && actual.cols == attempt.cols);
+    assert(equals(actual, attempt));
+    _free();
+}
+
+
+void test_add_case2() {
+    Matrix<double> a(4, 4, 1);
+    Matrix<double> b(1, 4, 2);
+    Matrix<double, double*> a_d(4, 4, 1, true);
+    Matrix<double, double*> b_d(1, 4, 2, true);
+
+    Matrix<double> actual = add(a, b);
+    Matrix<double, double*> attempt = add(a_d, b_d);
+
+    assert(actual.rows == attempt.rows && actual.cols == attempt.cols);
+    assert(equals(actual, attempt));
+    _free();
+}
+
+void test_add_case3() {
+    Matrix<double> a(4, 4, 1);
+    Matrix<double> b(4, 1, 2);
+    Matrix<double, double*> a_d(4, 4, 1, true);
+    Matrix<double, double*> b_d(4, 1, 2, true);
+
+    Matrix<double> actual = add(a, b);
+    Matrix<double, double*> attempt = add(a_d, b_d);
+
+    assert(actual.rows == attempt.rows && actual.cols == attempt.cols);
+    assert(equals(actual, attempt));
+    _free();
+}
+
+void test_add_case4() {
+    Matrix<double> a(4, 4, 1);
+    Matrix<double> b(1, 1, 2);
+    Matrix<double, double*> a_d(4, 4, 1, true);
+    Matrix<double, double*> b_d(1, 1, 2, true);
+
+    Matrix<double> actual = add(a, b);
+    Matrix<double, double*> attempt = add(a_d, b_d);
+
+    assert(actual.rows == attempt.rows && actual.cols == attempt.cols);
+    assert(equals(actual, attempt));
+    _free();
+}
+
+void test_subtract_case1() {
+    Matrix<double> a(4, 4, 1);
+    Matrix<double> b(4, 4, 2);
+    Matrix<double, double*> a_d(4, 4, 1, true);
+    Matrix<double, double*> b_d(4, 4, 2, true);
+
+    Matrix<double> actual = subtract(a, b);
+    Matrix<double, double*> attempt = subtract(a_d, b_d);
+
+    assert(actual.rows == attempt.rows && actual.cols == attempt.cols);
+    assert(equals(actual, attempt));
+    _free();
+}
+
+
+void test_subtract_case2() {
+    Matrix<double> a(4, 4, 1);
+    Matrix<double> b(1, 4, 2);
+    Matrix<double, double*> a_d(4, 4, 1, true);
+    Matrix<double, double*> b_d(1, 4, 2, true);
+
+    Matrix<double> actual = subtract(a, b);
+    Matrix<double, double*> attempt = subtract(a_d, b_d);
+
+    assert(actual.rows == attempt.rows && actual.cols == attempt.cols);
+    assert(equals(actual, attempt));
+    _free();
+}
+
+void test_subtract_case3() {
+    Matrix<double> a(4, 4, 1);
+    Matrix<double> b(4, 1, 2);
+    Matrix<double, double*> a_d(4, 4, 1, true);
+    Matrix<double, double*> b_d(4, 1, 2, true);
+
+    Matrix<double> actual = subtract(a, b);
+    Matrix<double, double*> attempt = subtract(a_d, b_d);
+
+    assert(actual.rows == attempt.rows && actual.cols == attempt.cols);
+    assert(equals(actual, attempt));
+    _free();
+}
+
+void test_subtract_case4() {
+    Matrix<double> a(4, 4, 1);
+    Matrix<double> b(1, 1, 2);
+    Matrix<double, double*> a_d(4, 4, 1, true);
+    Matrix<double, double*> b_d(1, 1, 2, true);
+
+    Matrix<double> actual = subtract(a, b);
+    Matrix<double, double*> attempt = subtract(a_d, b_d);
+
+    assert(actual.rows == attempt.rows && actual.cols == attempt.cols);
+    assert(equals(actual, attempt));
+    _free();
+}
+
+void test_division_case1() {
+    Matrix<double> a(4, 4, 1);
+    Matrix<double> b(4, 4, 2);
+    Matrix<double, double*> a_d(4, 4, 1, true);
+    Matrix<double, double*> b_d(4, 4, 2, true);
+
+    Matrix<double> actual = division(a, b);
+    Matrix<double, double*> attempt = division(a_d, b_d);
+
+    assert(actual.rows == attempt.rows && actual.cols == attempt.cols);
+    assert(equals(actual, attempt));
+    _free();
+}
+
+
+void test_division_case2() {
+    Matrix<double> a(4, 4, 1);
+    Matrix<double> b(1, 4, 2);
+    Matrix<double, double*> a_d(4, 4, 1, true);
+    Matrix<double, double*> b_d(1, 4, 2, true);
+
+    Matrix<double> actual = division(a, b);
+    Matrix<double, double*> attempt = division(a_d, b_d);
+
+    assert(actual.rows == attempt.rows && actual.cols == attempt.cols);
+    assert(equals(actual, attempt));
+    _free();
+}
+
+void test_division_case3() {
+    Matrix<double> a(4, 4, 1);
+    Matrix<double> b(4, 1, 2);
+    Matrix<double, double*> a_d(4, 4, 1, true);
+    Matrix<double, double*> b_d(4, 1, 2, true);
+
+    Matrix<double> actual = division(a, b);
+    Matrix<double, double*> attempt = division(a_d, b_d);
+
+    assert(actual.rows == attempt.rows && actual.cols == attempt.cols);
+    assert(equals(actual, attempt));
+    _free();
+}
+
+void test_division_case4() {
+    Matrix<double> a(4, 4, 1);
+    Matrix<double> b(1, 1, 2);
+    Matrix<double, double*> a_d(4, 4, 1, true);
+    Matrix<double, double*> b_d(1, 1, 2, true);
+
+    Matrix<double> actual = division(a, b);
+    Matrix<double, double*> attempt = division(a_d, b_d);
+
+    assert(actual.rows == attempt.rows && actual.cols == attempt.cols);
+    assert(equals(actual, attempt));
+    _free();
+}
+
+void test_mul_case1() {
+    Matrix<double> a(4, 4, 1);
+    Matrix<double> b(4, 4, 2);
+    Matrix<double, double*> a_d(4, 4, 1, true);
+    Matrix<double, double*> b_d(4, 4, 2, true);
+
+    Matrix<double> actual = mul(a, b);
+    Matrix<double, double*> attempt = mul(a_d, b_d);
+
+    assert(actual.rows == attempt.rows && actual.cols == attempt.cols);
+    assert(equals(actual, attempt));
+    _free();
+}
+
+
+void test_mul_case2() {
+    Matrix<double> a(4, 4, 1);
+    Matrix<double> b(1, 4, 2);
+    Matrix<double, double*> a_d(4, 4, 1, true);
+    Matrix<double, double*> b_d(1, 4, 2, true);
+
+    Matrix<double> actual = mul(a, b);
+    Matrix<double, double*> attempt = mul(a_d, b_d);
+
+    assert(actual.rows == attempt.rows && actual.cols == attempt.cols);
+    assert(equals(actual, attempt));
+    _free();
+}
+
+void test_mul_case3() {
+    Matrix<double> a(4, 4, 1);
+    Matrix<double> b(4, 1, 2);
+    Matrix<double, double*> a_d(4, 4, 1, true);
+    Matrix<double, double*> b_d(4, 1, 2, true);
+
+    Matrix<double> actual = mul(a, b);
+    Matrix<double, double*> attempt = mul(a_d, b_d);
+
+    assert(actual.rows == attempt.rows && actual.cols == attempt.cols);
+    assert(equals(actual, attempt));
+    _free();
+}
+
+void test_mul_case4() {
+    Matrix<double> a(4, 4, 1);
+    Matrix<double> b(1, 1, 2);
+    Matrix<double, double*> a_d(4, 4, 1, true);
+    Matrix<double, double*> b_d(1, 1, 2, true);
+
+    Matrix<double> actual = mul(a, b);
+    Matrix<double, double*> attempt = mul(a_d, b_d);
+
+    assert(actual.rows == attempt.rows && actual.cols == attempt.cols);
+    assert(equals(actual, attempt));
+    _free();
+}
+
+void test_equals_case1() {
+    Matrix<int> a(4, 4, 1);
+    Matrix<int> b(4, 4, 2);
+    Matrix<int, int*> a_d(4, 4, 1, true);
+    Matrix<int, int*> b_d(4, 4, 2, true);
+
+    Matrix<int> actual = equals(a, b);
+    Matrix<int, int*> attempt = equals(a_d, b_d);
+
+    assert(actual.rows == attempt.rows && actual.cols == attempt.cols);
+    assert(equals(actual, attempt));
+    _free();
+}
+
+
+void test_equals_case2() {
+    Matrix<int> a(4, 4, 1);
+    Matrix<int> b(1, 4, 2);
+    Matrix<int, int*> a_d(4, 4, 1, true);
+    Matrix<int, int*> b_d(1, 4, 2, true);
+
+    Matrix<int> actual = equals(a, b);
+    Matrix<int, int*> attempt = equals(a_d, b_d);
+
+    assert(actual.rows == attempt.rows && actual.cols == attempt.cols);
+    assert(equals(actual, attempt));
+    _free();
+}
+
+void test_equals_case3() {
+    Matrix<int> a(4, 4, 1);
+    Matrix<int> b(4, 1, 2);
+    Matrix<int, int*> a_d(4, 4, 1, true);
+    Matrix<int, int*> b_d(4, 1, 2, true);
+
+    Matrix<int> actual = equals(a, b);
+    Matrix<int, int*> attempt = equals(a_d, b_d);
+
+    assert(actual.rows == attempt.rows && actual.cols == attempt.cols);
+    assert(equals(actual, attempt));
+    _free();
+}
+
+void test_equals_case4() {
+    Matrix<int> a(4, 4, 1);
+    Matrix<int> b(1, 1, 2);
+    Matrix<int, int*> a_d(4, 4, 1, true);
+    Matrix<int, int*> b_d(1, 1, 2, true);
+
+    Matrix<int> actual = equals(a, b);
+    Matrix<int, int*> attempt = equals(a_d, b_d);
+
+    assert(actual.rows == attempt.rows && actual.cols == attempt.cols);
+    assert(equals(actual, attempt));
+    _free();
+}
+
+void test_exp() {
+    Matrix<double> a(10, 4, 1);
+    Matrix<double, double*> a_d(10, 4, 1, true);
+
+    Matrix<double> actual = exp(a);
+    Matrix<double, double*> attempt = exp(a_d);
+
+    assert(actual.rows == attempt.rows && actual.cols == attempt.cols);
+    assert(equals(actual, attempt));
+    _free();
+}
+
+void test_log() {
+    Matrix<double> a(10, 4, 1);
+    Matrix<double, double*> a_d(10, 4, 1, true);
+
+    Matrix<double> actual = log(a);
+    Matrix<double, double*> attempt = log(a_d);
+
+    assert(actual.rows == attempt.rows && actual.cols == attempt.cols);
+    assert(equals(actual, attempt));
+    _free();
+}
+
+
+
+void test_mul_const() {
+    Matrix<double> a(10, 4, 1);
+    Matrix<double, double*> a_d(10, 4, 1, true);
+
+    Matrix<double> actual = mul_const(a, 3.5);
+    Matrix<double, double*> attempt = mul_const(a_d, 3.5);
+
+    assert(actual.rows == attempt.rows && actual.cols == attempt.cols);
+    assert(equals(actual, attempt));
+    _free();
+}
+
+
+void test_argmax() {
+    Matrix<double> a(10, 4, 1);
+    Matrix<double, double*> a_d(10, 4, 1, true);
+
+    Matrix<int> actual = argmax(a);
+    Matrix<int, int*> attempt = argmax(a_d);
+
+    assert(actual.rows == attempt.rows && actual.cols == attempt.cols);
+    assert(equals(actual, attempt));
+    _free();
+}
+
+
+
+bool equals(Matrix<double, std::vector<double, std::allocator<double>>>& a, Matrix<double, double*>& b) {
+    std::vector<double> compare(a.rows * a.cols);
+	cuda::checkError(cudaMemcpy(&compare[0], b.get_matrix(), sizeof(double) * a.size(), cudaMemcpyDeviceToHost));
+    for (double i = 0; i < a.rows; ++i) {
+        for (double j = 0; j < a.cols; ++j) {
+            if ((std::fabs(a[i*a.cols + j] - compare[i*a.cols + j])) > DBL_EPSILON) {
+                std::cout << "i: " << i << " j: " << j << std::endl;
+                std::cout << a[i*a.cols + j] << " != " << compare[i*a.cols + j] << std::endl;
                 return false;
             }
         }
@@ -121,22 +578,14 @@ bool equals(Matrix<double, std::vector<double, std::allocator<double>>>& a,
     return true;
 }
 
-bool equals(Matrix<double, std::vector<double, std::allocator<double>>>& a, Matrix<double, double*>& b) {
-    //Matrix<double> compare(a.rows, a.cols);
-    //b.get_matrix(compare);
-    double* compare = (double*) malloc(sizeof(double) * a.size());
-	cuda::checkError(cudaMemcpy(compare, b.get_matrix(), sizeof(double) * a.size(), cudaMemcpyDeviceToHost));
-    std::cout << a.size() << std::endl;
+bool equals(Matrix<int, std::vector<int, std::allocator<int>>>& a, Matrix<int, int*>& b) {
+    std::vector<int> compare(a.rows * a.cols);
+	cuda::checkError(cudaMemcpy(&compare[0], b.get_matrix(), sizeof(int) * a.size(), cudaMemcpyDeviceToHost));
     for (int i = 0; i < a.rows; ++i) {
         for (int j = 0; j < a.cols; ++j) {
-            double a_i = a[i*a.rows + j];
-            double b_i = compare[i*a.rows + j];
-            if (!(std::fabs(a_i - b_i) < (double) 10000)) {
+            if (a[i*a.cols + j] != compare[i*a.cols + j]) {
                 std::cout << "i: " << i << " j: " << j << std::endl;
-                std::cout << "Error: a != b : " << a_i << " != " << b_i << std::endl;
-                //std::cout << "Error: a != b : " << a[i*a.rows + j] << " != " << compare[i*a.rows + j] << std::endl;
-                //print(a);
-                //print(compare);
+                std::cout << a[i*a.cols + j] << " != " << compare[i*a.cols + j] << std::endl;
                 return false;
             }
         }
@@ -145,8 +594,8 @@ bool equals(Matrix<double, std::vector<double, std::allocator<double>>>& a, Matr
 }
 
 void randomize(Matrix<double>& a) {
-    for (int i = 0; i < a.rows; ++i) {
-        for (int j = 0; j < a.cols; ++j) {
+    for (double i = 0; i < a.rows; ++i) {
+        for (double j = 0; j < a.cols; ++j) {
             a[i*a.rows + j] = i;
         }
     }
@@ -181,4 +630,9 @@ std::string type_name() {
     else if (std::is_rvalue_reference<T>::value)
         r += "&&";
     return r;
+}
+
+double round_up(double value, int decimal_places) {
+    const double multiplier = std::pow(10.0, decimal_places);
+    return std::ceil(value * multiplier) / multiplier;
 }

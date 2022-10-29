@@ -47,7 +47,7 @@ template <typename dtype>
 Matrix<dtype> transpose(Matrix<dtype> input);
 
 template <typename dtype, class Operator>
-Matrix<dtype> general(Matrix<dtype> a, Matrix<dtype> b, Operator op, std::chrono::duration<int64_t, std::micro>& WhateverTiming);
+Matrix<dtype> general(Matrix<dtype> a, Matrix<dtype> b, Operator op);
 
 template <typename dtype>
 Matrix<dtype, dtype*> transpose(Matrix<dtype, dtype*> a);
