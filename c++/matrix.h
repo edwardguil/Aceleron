@@ -14,7 +14,7 @@ public:
     int rows;
     int cols;
 
-    Matrix(int rows, int cols, dtype value = 0);
+    Matrix(int rows, int cols, dtype value = 0, bool memset = false);
     Matrix();
     ~Matrix();
 
@@ -47,7 +47,7 @@ template <typename dtype>
 Matrix<dtype> transpose(Matrix<dtype> input);
 
 template <typename dtype, class Operator>
-Matrix<dtype> general(Matrix<dtype> a, Matrix<dtype> b, Operator op);
+Matrix<dtype> general(Matrix<dtype> a, Matrix<dtype> b, Operator op, std::chrono::duration<int64_t, std::micro>& WhateverTiming);
 
 template <typename dtype>
 Matrix<dtype, dtype*> transpose(Matrix<dtype, dtype*> a);
@@ -82,7 +82,7 @@ Matrix<dtype> relu_fwd(Matrix<dtype> a);
 template <typename dtype>
 Matrix<dtype, dtype*> relu_bwd(Matrix<dtype, dtype*> a, Matrix<dtype, dtype*> b);
 
-void free();
+void _free();
 
 }
 #include "matrix.cu"

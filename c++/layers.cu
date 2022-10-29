@@ -17,8 +17,8 @@
 */
 template<typename dtype, typename vtype>
 Dense<dtype, vtype>::Dense(int n_inputs, int n_neurons, bool randomize): 
-            weights(n_inputs, n_neurons), biases(1, n_neurons, 1), 
-            dweights(n_inputs, n_neurons), dbiases(1, n_neurons, 1) 
+            weights(n_inputs, n_neurons), biases(1, n_neurons, 1, true), 
+            dweights(n_inputs, n_neurons), dbiases(1, n_neurons) 
             { 
        randomize_weights(randomize);
 }
@@ -198,6 +198,7 @@ ReLU<dtype, vtype>::ReLU(void) {}
 template<typename dtype, typename vtype>
 matrix::Matrix<dtype, vtype> ReLU<dtype, vtype>::forward(matrix::Matrix<dtype, vtype>& input) {
     matrix::Matrix<dtype, vtype> out(input.rows, input.cols);
+    auto StartTime = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < input.rows; i++) {
         for (int j = 0; j < input.cols; j++) {
             if (input[i*input.cols + j] < 0) {
@@ -207,6 +208,7 @@ matrix::Matrix<dtype, vtype> ReLU<dtype, vtype>::forward(matrix::Matrix<dtype, v
             }
         }
     }
+    matrix::ReluFwdTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
     return out;
 }
 
@@ -237,6 +239,7 @@ matrix::Matrix<double, double*> ReLU<double, double*>::forward(matrix::Matrix<do
 template<typename dtype, typename vtype>
 matrix::Matrix<dtype, vtype> ReLU<dtype, vtype>::backward(matrix::Matrix<dtype, vtype>& inputs, 
 	    matrix::Matrix<dtype, vtype>& dinput) {
+    auto StartTime = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < dinput.rows; i++) {
         for (int j = 0; j < dinput.cols; j++) {
             if (inputs[i*inputs.cols + j] <= 0) {
@@ -244,6 +247,7 @@ matrix::Matrix<dtype, vtype> ReLU<dtype, vtype>::backward(matrix::Matrix<dtype, 
             }
         }
     }
+    matrix::ReluBwdTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
     return dinput;
 }
 
@@ -346,10 +350,13 @@ matrix::Matrix<dtype, vtype> SoftmaxCrossEntropy<dtype, vtype>::backward(matrix:
 	    matrix::Matrix<dtype, vtype>& y_true) {
     // Expects y_true to be one hot encoded
     matrix::Matrix<int> converted = matrix::argmax(y_true);
+    auto StartTime = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < dinput.rows; i++) {
         dinput[i*dinput.cols + converted[i]] -= 1;
     }
+    matrix::SoftMaxBwdTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
     matrix::Matrix<dtype, vtype> temp(1, 1, dinput.rows);
+    matrix::SoftMaxBwdTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - StartTime );
     return matrix::division(dinput, temp);
 }
 
@@ -367,7 +374,7 @@ matrix::Matrix<double, double*> SoftmaxCrossEntropy<double, double*>::backward(m
 	    matrix::Matrix<double, double*>& y_true) {
     // Expects y_true to be one hot encoded
     matrix::Matrix<int, int*> converted = matrix::argmax(y_true);
-    matrix::Matrix<double, double*> temp(1, 1, dinput.rows);
+    matrix::Matrix<double, double*> temp(1, 1, dinput.rows, true);
     return matrix::division(matrix::softmax_bwd(dinput, converted), temp);
 }
 

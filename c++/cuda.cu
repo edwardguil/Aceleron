@@ -40,11 +40,13 @@ void max(int a_rows, int a_cols, dtype* a, dtype* b) {
         return;
     }
 
+    dtype max = a[i];
     for (int j = 0; j < a_cols; ++j) {
-        if (a[i*a_cols + j] > b[i]) {
-            b[i] = a[i*a_cols + j];
+        if (a[i*a_cols + j] > max) {
+            max = a[i*a_cols + j];
         }
     }
+    b[i] = max;
 }
 
 template <typename dtype>
@@ -58,9 +60,11 @@ void sum_keepdims_0(int a_rows, int a_cols, dtype* a, dtype* b) {
         return;
     }
 
+    dtype sum = 0;
     for (int j = 0; j < a_rows; ++j) {
-        b[i] += a[j*a_cols + i];
+        sum += a[j*a_cols + i];
     }
+    b[i] = sum;
 }
 
 template <typename dtype>
@@ -73,9 +77,11 @@ void sum_keepdims_1(int a_rows, int a_cols, dtype* a, dtype* b) {
         return;
     }
 
+    dtype sum = 0;
     for (int j = 0; j < a_cols; ++j) {
-        b[i] += a[i*a_cols + j];
+        sum += a[i*a_cols + j];
     }
+    b[i] = sum;
 }
 
 __global__
