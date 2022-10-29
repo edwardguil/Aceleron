@@ -5,7 +5,7 @@ NVFLAGS = --gpu-architecture=sm_35 -Wno-deprecated-gpu-targets -pg -g
 DEPEND := layers.cu losses.cu metrics.cu optimizers.cu matrix.cu cuda.cu
 OPTIMISE = -O3
 
-all: driver
+all: driverp driver
 
 driver : driver.o
 	$(NVCC) $(OPTIMISE) $(NVFLAGS) driver.o -o $@
