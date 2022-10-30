@@ -3,14 +3,6 @@
 
 namespace cuda {
 
-void checkError(cudaError_t e)
-{
-   if (e != cudaSuccess)
-   {
-      std::cerr << "CUDA error: " << int(e) << " : " << cudaGetErrorString(e) << '\n';
-      abort();
-   }
-}
 
 /* dot()
 * -----
@@ -618,4 +610,18 @@ void softmax_bwd(int a_rows, int a_cols, dtype* a, int* b, dtype* c) {
     c[i*a_cols + b[i]] = a[i*a_cols + b[i]] - 1;
 }
 
+/* checkError()
+* -----
+* Checks if a cuda call returned an error. Should be used as
+* a wrapper around function calls e.g. checkError(cudaMemCpy(**kwargs));
+* Will abort execution if error is detected.
+*/
+void checkError(cudaError_t e)
+{
+   if (e != cudaSuccess)
+   {
+      std::cerr << "CUDA error: " << int(e) << " : " << cudaGetErrorString(e) << '\n';
+      abort();
+   }
+}
 }
