@@ -12,8 +12,6 @@ namespace matrix {
 
 std::vector<void*> _FREE;
 
-
-
 /* Matrix<dtype>::Matrix()
 * -----
 * Initiliases a Matrix object with the respective shape. 
@@ -27,14 +25,12 @@ std::vector<void*> _FREE;
 * @rows: the number of rows the matrix should have
 * @cols: the number of cols the matrix should have
 * @value: the value to fill the matrix, defaults to 0.
+* @memset: wether to memCpy for cuda matrices
 */
 template <typename dtype, typename vtype>
 Matrix<dtype, vtype>::Matrix(int rows, int cols, dtype value, bool memset): matrix(rows*cols, value), 
 		rows(rows), cols(cols) {
 }
-
-template <typename dtype, typename vtype>
-Matrix<dtype, vtype>::~Matrix() {}
 
 /* Matrix::operator[]()
 * -----
@@ -113,6 +109,7 @@ Matrix<dtype, vtype> Matrix<dtype, vtype>::copy() {
 * @rows: the number of rows the matrix should have
 * @cols: the number of cols the matrix should have
 * @value: the value to fill the matrix, defaults to 0.
+* @memset: wether to memCpy for cuda matrices
 */
 template<>
 inline Matrix<double, double*>::Matrix(int rows, int cols, double value, bool memset): 
@@ -123,15 +120,7 @@ inline Matrix<double, double*>::Matrix(int rows, int cols, double value, bool me
 		std::vector<double> in(rows*cols, value);
 		cuda::checkError(cudaMemcpy(matrix, &(in[0]), sizeof(double) * (rows * cols), cudaMemcpyHostToDevice));
 	}
-	//cuda::checkError(cudaMemset(matrix, value, sizeof(double) * (rows * cols)));
 }
-
-template<>
-inline Matrix<double, double*>::~Matrix() {}
-
-
-template<>
-inline Matrix<int, int*>::~Matrix() {}
 
 /* Matrix<dtype>::set_matrix()
 * -----
@@ -185,17 +174,18 @@ inline Matrix<double, double*> Matrix<double, double*>::copy() {
 	return out;
 }
 
-/* Matrix<double, double*>::Matrix()
+/* Matrix<int, int*>::Matrix()
 * -----
 * Initiliases a Matrix object with the respective shape. 
 * 
-* Matrix<double, double*> is a wrapper for a double* stored
+* Matrix<int, int*> is a wrapper for a int* stored
 * on a CUDA device. This is for convience to limit the passing 
 * of rows, cols through every function that required it.
 *
 * @rows: the number of rows the matrix should have
 * @cols: the number of cols the matrix should have
 * @value: the value to fill the matrix, defaults to 0.
+* @memset: wether to memCpy for cuda matrices
 */
 template<>
 inline Matrix<int, int*>::Matrix(int rows, int cols, int value, bool memset): 
@@ -206,7 +196,6 @@ inline Matrix<int, int*>::Matrix(int rows, int cols, int value, bool memset):
 		std::vector<int> in(rows*cols, value);
 		cuda::checkError(cudaMemcpy(matrix, &(in[0]), sizeof(int) * (rows * cols), cudaMemcpyHostToDevice));
 	}
-	//cuda::checkError(cudaMemset(matrix, value, sizeof(double) * (rows * cols)));
 }
 
 /* Matrix<dtype>::set_matrix()
@@ -509,7 +498,7 @@ Matrix<dtype> add(Matrix<dtype> a, Matrix<dtype> b) {
 
 }
 
-/* add()
+/* subtract()
 * -----
 * Computes matrix subtraction: a - b. See matrix_general(),
 * for more information on behaviour.
@@ -562,7 +551,7 @@ Matrix<dtype> division(Matrix<dtype> a, Matrix<dtype> b) {
 
 }
 
-/* add()
+/* equals()
 * -----
 * Computes matrix equals: a == b. See matrix_general(),
 * for more information on behaviour.
@@ -584,7 +573,6 @@ Matrix<int> equals(Matrix<int> a, Matrix<int> b) {
 /* exp()
 * -----
 * Computes element wise exponential of a matrix.
-* for more information on behaviour.
 *
 * @a: the matrix to be exponentiated
 *
@@ -602,10 +590,9 @@ Matrix<dtype> exp(Matrix<dtype> a) {
 
 }
 
-/* exp()
+/* log()
 * -----
 * Computes element wise log of a matrix.
-* for more information on behaviour.
 *
 * @a: the matrix to be log'd
 *
@@ -666,7 +653,19 @@ Matrix<int> argmax(Matrix<dtype> a) {
     }
     return out;
 }
-
+/* loop_case()
+* -----
+* Determines which case 0-3 the state of the inputs make. 
+* Each case determines how element b will be indexed and 
+* the output shape in several matrix functions. The 
+* 
+* 	if (a.rows == b.rows && a.cols == b.cols) -> element wise      = 3
+* 	if (a.cols == b.cols && b.rows == 1) -> a[i*a.cols + j] x a[j] = 2
+*   if (a.rows == b.rows && b.cols == 1) -> a[i*a.cols + j] x b[i] = 1 
+*   if (b.rows == 1 && b.cols == 1) -> a[i*a.cols + j] x b[0]      = 0
+*
+* Returns: the loop case from -1 to 3.
+*/
 int loop_case(int arows, int acols, int brows, int bcols) {
 	if (arows == brows && acols == bcols) {
 		return 3; // b[i*a.cols + j]
@@ -706,7 +705,18 @@ Matrix<dtype, dtype*> dot(Matrix<dtype, dtype*> a, Matrix<dtype, dtype*> b) {
 	return out;
 }
 
-
+/* max()
+* -----
+* Finds the max value over axis 1 of a matrix. That is
+* the max value in each row. Equilivent to 
+* np.max(a, axis=1, keepdims=true). 
+*
+* @a: the matrix to find the max of
+*
+* Returns: a new matrix containing the max value
+* 		of each row in the parsed matrix.
+*		will be of shape (a.rows, 1)
+*/
 template <typename dtype>
 Matrix<dtype, dtype*> max(Matrix<dtype, dtype*> a) {	
 	Matrix<dtype, dtype*> out(a.rows, 1, (dtype) -INT_MAX);
@@ -717,6 +727,23 @@ Matrix<dtype, dtype*> max(Matrix<dtype, dtype*> a) {
 	return out;
 }
 
+/* sum()
+* -----
+* Sums a matrix over the respective axis, keeps the 
+* same dimensions as the original matrix if keepdims 
+* is true.
+*
+* @a: the matrix to sum
+* @axis: the axis to sum over
+* @keepdims: weather the matrix should keep a dimensions
+* 		or lose a dimension over the opposing axis
+*
+* Returns: the summed matrix of shape:
+*		keepdims==1 & axis==1: (a.rows, 1)
+*		keepdims==1 & axis==0: (1, a.cols)
+*		keepdims==0: (1, 1)
+*
+*/
 template <typename dtype>
 Matrix<dtype, dtype*> sum(Matrix<dtype, dtype*> a, int axis, bool keepdims) {
 	int threads = 1024;
@@ -749,6 +776,16 @@ Matrix<dtype, dtype*> sum(Matrix<dtype, dtype*> a, int axis, bool keepdims) {
     }
 }
 
+/* transpose()
+* -----
+* Transposes the provided matrix. That is rows become
+* columns and columns become rows.
+*
+* @a: the matrix to be transposed
+*
+* Returns: a transposition of the provided matrix,
+*		new matrix will be of size (a.cols, a.rows)
+*/
 template <typename dtype>
 Matrix<dtype, dtype*> transpose(Matrix<dtype, dtype*> a) {
 	Matrix<dtype, dtype*> out(a.cols, a.rows); 
@@ -760,6 +797,16 @@ Matrix<dtype, dtype*> transpose(Matrix<dtype, dtype*> a) {
 	return out;
 }
 
+/* add()
+* -----
+* Computes matrix addition: a + b. See matrix_general(),
+* for more information on behaviour.
+*
+* @a: the first matrix to be used in the calculation
+* @b: the second matrix to be used in the calculation
+*
+* Returns: a new matrix of a + b with (a.rows, a.cols).
+*/
 template <typename dtype>
 Matrix<dtype, dtype*> add(Matrix<dtype, dtype*> a, Matrix<dtype, dtype*> b) {
 	Matrix<dtype, dtype*> out(a.rows, a.cols); 
@@ -772,6 +819,16 @@ Matrix<dtype, dtype*> add(Matrix<dtype, dtype*> a, Matrix<dtype, dtype*> b) {
 	return out;
 }
 
+/* subtract()
+* -----
+* Computes matrix subtraction: a - b. See matrix_general(),
+* for more information on behaviour.
+*
+* @a: the first matrix to be used in the calculation
+* @b: the second matrix to be used in the calculation
+*
+* Returns: a new matrix of a - b with (a.rows, a.cols).
+*/
 template <typename dtype>
 Matrix<dtype, dtype*> subtract(Matrix<dtype, dtype*> a, Matrix<dtype, dtype*> b) {
 	Matrix<dtype, dtype*> out(a.rows, a.cols); 
@@ -784,6 +841,16 @@ Matrix<dtype, dtype*> subtract(Matrix<dtype, dtype*> a, Matrix<dtype, dtype*> b)
 	return out;
 }
 
+/* mul()
+* -----
+* Computes matrix multiplication: a * b. See matrix_general(),
+* for more information on behaviour.
+*
+* @a: the first matrix to be used in the calculation
+* @b: the second matrix to be used in the calculation
+*
+* Returns: a new matrix of a * b with (a.rows, a.cols).
+*/
 template <typename dtype>
 Matrix<dtype, dtype*> mul(Matrix<dtype, dtype*> a, Matrix<dtype, dtype*> b) {
 	Matrix<dtype, dtype*> out(a.rows, a.cols); 
@@ -796,6 +863,16 @@ Matrix<dtype, dtype*> mul(Matrix<dtype, dtype*> a, Matrix<dtype, dtype*> b) {
 	return out;
 }
 
+/* division()
+* -----
+* Computes matrix division: a / b. See matrix_general(),
+* for more information on behaviour.
+*
+* @a: the first matrix to be used in the calculation
+* @b: the second matrix to be used in the calculation
+*
+* Returns: a new matrix of a / b with (a.rows, a.cols).
+*/
 template <typename dtype>
 Matrix<dtype, dtype*> division(Matrix<dtype, dtype*> a, Matrix<dtype, dtype*> b) {
 	Matrix<dtype, dtype*> out(a.rows, a.cols); 
@@ -808,6 +885,16 @@ Matrix<dtype, dtype*> division(Matrix<dtype, dtype*> a, Matrix<dtype, dtype*> b)
 	return out;
 }
 
+/* equals()
+* -----
+* Computes matrix equals: a == b. See matrix_general(),
+* for more information on behaviour.
+*
+* @a: the first matrix to be used in the calculation
+* @b: the second matrix to be used in the calculation
+*
+* Returns: a new matrix of a == b with (a.rows, a.cols).
+*/
 Matrix<int, int*> equals(Matrix<int, int*> a, Matrix<int, int*> b) {
 	Matrix<int, int*> out(a.rows, a.cols); 
 	int threads = 32;
@@ -819,6 +906,15 @@ Matrix<int, int*> equals(Matrix<int, int*> a, Matrix<int, int*> b) {
 	return out;
 }
 
+/* exp()
+* -----
+* Computes element wise exponential of a matrix.
+* for more information on behaviour.
+*
+* @a: the matrix to be exponentiated
+*
+* Returns: an exponentiated copy of a, with shape (a.rows, a.cols).
+*/
 template <typename dtype>
 Matrix<dtype, dtype*> exp(Matrix<dtype, dtype*> a) {
 	Matrix<dtype, dtype*> out(a.rows, a.cols); 
@@ -830,6 +926,15 @@ Matrix<dtype, dtype*> exp(Matrix<dtype, dtype*> a) {
 	return out;
 }
 
+/* log()
+* -----
+* Computes element wise log of a matrix.
+* for more information on behaviour.
+*
+* @a: the matrix to be log'd
+*
+* Returns: an log'd copy of a, with shape (a.rows, a.cols).
+*/
 template <typename dtype>
 Matrix<dtype, dtype*> log(Matrix<dtype, dtype*> a) {
 	Matrix<dtype, dtype*> out(a.rows, a.cols); 
@@ -841,6 +946,16 @@ Matrix<dtype, dtype*> log(Matrix<dtype, dtype*> a) {
 	return out;
 }
 
+
+/* mul_const()
+* -----
+* Computes element wise a * b.
+*
+* @a: the matrix to be used in the calculation
+* @b: the value 
+*
+* Returns: a new matrix of a * b with (a.rows, a.cols).
+*/
 template <typename dtype>
 Matrix<dtype, dtype*> mul_const(Matrix<dtype, dtype*> a, dtype b) {
 	Matrix<dtype, dtype*> out(a.rows, a.cols); 
@@ -852,6 +967,15 @@ Matrix<dtype, dtype*> mul_const(Matrix<dtype, dtype*> a, dtype b) {
 	return out;
 }
 
+/* argmax()
+* -----
+* Computes element argmax of a matrix across axis 1. That is
+* finds the index of the maximum value in each row.
+*
+* @a: the matrix to be used in the calculation
+*
+* Returns: a matrix full of indices with shape(a.rows, 1).
+*/
 template <typename dtype>
 Matrix<int, int*> argmax(Matrix<dtype, dtype*> a) {
 	Matrix<int, int*> out(a.rows, 1);
@@ -862,6 +986,16 @@ Matrix<int, int*> argmax(Matrix<dtype, dtype*> a) {
 	return out;
 }
 
+/* relu_fwd()
+* -----
+* Applies element wise ReLU to a matrix.
+* That is any values less than zero in the matrix
+* input will be set to zero. Otherwise unchanged.
+*
+* @a: the matrix to be used in the calculation
+*
+* Returns: the relu'd matrix with shape(a.rows, a.cols).
+*/
 template <typename dtype>
 Matrix<dtype, dtype*> relu_fwd(Matrix<dtype, dtype*> a) {
 	Matrix<dtype, dtype*> out(a.rows, a.cols); 
@@ -873,6 +1007,17 @@ Matrix<dtype, dtype*> relu_fwd(Matrix<dtype, dtype*> a) {
 	return out;
 }
 
+/* relu_bwd()
+* -----
+* Computes the partial derivate w.r.t the relus output, utilising 
+* the matrix of derivatives. 
+*
+* @a: the input that was passed through relu in the previous
+*       forward pass
+* @b: the derivative matrix passed from the next layer
+*
+* Returns: the partial derivative w.r.t the relus output
+*/
 template <typename dtype>
 Matrix<dtype, dtype*> relu_bwd(Matrix<dtype, dtype*> a, Matrix<dtype, dtype*> b) {
 	Matrix<dtype, dtype*> out(a.rows, a.cols); 
@@ -884,6 +1029,16 @@ Matrix<dtype, dtype*> relu_bwd(Matrix<dtype, dtype*> a, Matrix<dtype, dtype*> b)
 	return out;
 }
 
+/* softmax_bwd()
+* -----
+* Computes the partial derivate w.r.t the Softmax output, utilising 
+* the matrix of derivatives. 
+*
+* @a: the output from the forward pass of the softmax function
+* @b: the class labels for the input
+*
+* Returns: the partial derivative w.r.t the layers output
+*/
 template <typename dtype>
 Matrix<dtype, dtype*> softmax_bwd(Matrix<dtype, dtype*> a, Matrix<int, int*> b) {
 	Matrix<dtype, dtype*> out(a.rows, a.cols); 
@@ -894,15 +1049,15 @@ Matrix<dtype, dtype*> softmax_bwd(Matrix<dtype, dtype*> a, Matrix<int, int*> b) 
 	return a;
 }
 
+/* _free()
+* -----
+* Loops of _FREE and cudaFree's all elements. 
+*/
 void _free() {
 	while (!_FREE.empty()) {
 		cuda::checkError(cudaFree(_FREE.back()));
 		_FREE.pop_back();
 	}
-	// while (!_FREEI.empty()) {
-	// 	cuda::checkError(cudaFree(_FREEI.back()));
-	// 	_FREEI.pop_back();
-	// }
 }
 
 }

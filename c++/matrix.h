@@ -16,7 +16,6 @@ public:
 
     Matrix(int rows, int cols, dtype value = 0, bool memset = false);
     Matrix();
-    ~Matrix();
 
     dtype& operator[](int i);
 

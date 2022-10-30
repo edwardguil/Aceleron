@@ -14,6 +14,7 @@
 *
 * @n_inputs: the number of features/dimensions of the input data (after flattening)
 * @n_neurons: the number of neurons to be contained in the layer
+* @randomize: wether to randomize network weights, true = randomize
 */
 template<typename dtype, typename vtype>
 Dense<dtype, vtype>::Dense(int n_inputs, int n_neurons, bool randomize): 

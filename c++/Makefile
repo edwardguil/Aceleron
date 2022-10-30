@@ -13,11 +13,11 @@ driver : driver.o
 driver.o: driver.cu  $(DEPEND)
 	$(NVCC) $(OPTIMISE) $(NVFLAGS) -c -o driver.o driver.cu
 
-driverp : driverParrallel.o
-	$(NVCC) $(OPTIMISE) $(NVFLAGS) driverParrallel.o -o driverp
+driverp : driverp.o
+	$(NVCC) $(OPTIMISE) $(NVFLAGS) driverp.o -o driverp
 
-driverParrallel.o: driverParrallel.cu $(DEPEND)
-	$(NVCC) $(OPTIMISE) $(NVFLAGS) -c -o driverParrallel.o driverParrallel.cu
+driverp.o: driverp.cu $(DEPEND)
+	$(NVCC) $(OPTIMISE) $(NVFLAGS) -c -o driverp.o driverp.cu
 
 tests : tests.o
 	$(NVCC) $(OPTIMISE) $(NVFLAGS) tests.o -o tests
@@ -29,4 +29,4 @@ tests.o: tests.cu $(DEPEND)
 	$(NVCC) $(OPTIMISE) $(NVFLAGS) -c $< -o $@ 
 
 clean: 
-	rm driver driver.o driverp driverParrallel.o debug debug.o tests.o tests
+	rm driver driver.o driverp driverp.o debug debug.o tests.o tests

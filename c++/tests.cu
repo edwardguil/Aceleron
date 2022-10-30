@@ -1,3 +1,7 @@
+/*
+* Author: Edward Guilfoyle
+* Note: This file is to test the PARALLEL implementation against SERIAL implementation.
+*/
 #include <type_traits>
 #include <typeinfo>
 #ifndef _MSC_VER
@@ -225,15 +229,25 @@ void test_transpose() {
     _free();
 }
 
+/* test_add_case1()
+* -----
+* Tests the CUDA add against the serial implementation. Tests 
+* case 1 of the add function, that is when a.rows = b.rows 
+* && a.cols == b.cols e.g. element wise add. Exits if test 
+* fails, returns void otherwise. 
+*/
 void test_add_case1() {
+    // Setup matrices
     Matrix<double> a(4, 4, 1);
     Matrix<double> b(4, 4, 2);
     Matrix<double, double*> a_d(4, 4, 1, true);
     Matrix<double, double*> b_d(4, 4, 2, true);
 
+    // Perform calculation
     Matrix<double> actual = add(a, b);
     Matrix<double, double*> attempt = add(a_d, b_d);
 
+    // Compare
     assert(actual.rows == attempt.rows && actual.cols == attempt.cols);
     assert(equals(actual, attempt));
     _free();

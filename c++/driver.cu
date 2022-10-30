@@ -1,3 +1,7 @@
+/*
+* Author: Edward Guilfoyle
+* Note: This file demonstrates SERIAL computing to perform classification on spiral dataset.
+*/
 #include <iomanip>
 #include <chrono>
 #include "matrix.h"
@@ -25,8 +29,9 @@ int handle_N(int N);
 * 			- SoftMax()
 * 
 * A single command line argument can be parsed to control the
-* size of the input data to the neural network. Increments
-* of 100 from 100-1000. 
+* size of the input data to the neural network. Please pass
+* integers only.
+*
 *
 * @argc: The length of argv
 * @argv: Inputs from the command line
@@ -58,20 +63,23 @@ int main(int argc, char *argv[]) {
 
 	// Main algorithimic loop
     for (int i = 0; i < 2001; i++) {
-
+		// Lets do a forward pass
 		Matrix<double> out1 = layer1.forward(x_train);
 		Matrix<double> out2 = layer2.forward(out1);
 		Matrix<double> out3 = layer3.forward(out2);
 		Matrix<double> out4 = layer4.forward(out3, y_train);
+
+		// Lets calculate some metrics
 		double loss = layer4.get_loss();
 		double acc = metric::accuracy(y_train, out4);
 
+		// Lets do a backward pass
 		Matrix<double> back4 = layer4.backward(out4, y_train);
 		Matrix<double> back3 = layer3.backward(out2, back4);
 		Matrix<double> back2 = layer2.backward(out1, back3);
 		Matrix<double> back1 = layer1.backward(x_train, back2);
 		
-		
+		// Lets update the model parameters with SGD
 		sgd.pre_update();
 		sgd.update(&layer3);
 		sgd.update(&layer1);
@@ -85,6 +93,7 @@ int main(int argc, char *argv[]) {
 			double losstest = layer4.get_loss();
 			double acctest = metric::accuracy(y_test, outtest4);
 
+			std::cout <<  "CUDA   - ";
 			std::cout << "epoch: " << i;
 			std::cout << ", acc: " << std::setprecision(3) << acc;
 			std::cout << ", loss: " << std::setprecision(3) << loss;
@@ -198,7 +207,12 @@ void handle_input(Matrix<double>& x_train, Matrix<double>& y_train,
 		y_test.set_matrix(y_test_raw_80000);
 	}
 }
-
+/* handle_N()
+* -----
+* Determines the new size of N conditionally on the size of N.
+*
+* Returns: the new size of N
+*/
 int handle_N(int N) {
 	if (N <= 100) {
 		return 100;
