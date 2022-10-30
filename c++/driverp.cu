@@ -10,7 +10,7 @@
 #include "metrics.h"
 #include "optimizers.h"
 #include "cuda.h"
-#include "data/data2.h"
+#include "data/data.h"
 
 using namespace matrix;
 
