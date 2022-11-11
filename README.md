@@ -1,7 +1,7 @@
 # edNet
-A simple Neural Network Framework! 
+A Simple Parallelized Neural Network Framework in C++ and Python! 
 ## Overview
-This is a basic Neural Network framework meant to teach myself how popular NN libraries work. Implementations are in Python and C++. More features to come!
+This is a Neural Network framework that covers core mechanics of traditional neural network techniques (FCN's) and it's approach from a high performance computing perspective. 
 
 ## Features:
 - Layers:
@@ -26,4 +26,7 @@ This is a basic Neural Network framework meant to teach myself how popular NN li
 1) Clone repo
 2) Install dependacies (numpy)
 3) Run driver2.py for demonstration
+
+## Paper
+Please see this [link](https://1drv.ms/w/s!AvEmHRWzO1jBj4RcRyWWWYkctS0csg?e=SYh1O7) for a full report the latest version. 
 
