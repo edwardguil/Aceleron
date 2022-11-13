@@ -32,7 +32,7 @@ optimizer::SGD<double> sgd(1.0, 0.001);
 Matrix<double> out1 = layer1.forward(x_train);
 Matrix<double> out2 = layer2.forward(out1);
 Matrix<double> out3 = layer3.forward(out2);
-Matrix<double*> out4 = layer4.forward(out3, y_train);
+Matrix<double> out4 = layer4.forward(out3, y_train);
 
 // Calculate loss and metric
 double loss = layer4.get_loss();
