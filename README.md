@@ -39,7 +39,8 @@ double loss = layer4.get_loss();
 double acc = metric::accuracy(y_train, out4);
 ```
 
-## Installation C++
+## Installation
+### C++
 Requires CUDA version 10.0, C++11 or greater and appropriate compiler
 1) Clone repo
 2) Cd to C++ dir
@@ -47,8 +48,7 @@ Requires CUDA version 10.0, C++11 or greater and appropriate compiler
 4) Run "./driver 1000" for demonstration of the serial implementation
 5) Run "./driver 1000" for demonstration of the parallel implementation
 
-
-## Installation Python
+### Python
 1) Clone repo
 2) Install dependacies (numpy)
 3) Run driver.py for demonstration of the serial implementation
