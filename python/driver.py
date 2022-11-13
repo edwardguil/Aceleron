@@ -2,99 +2,57 @@ from Layers import *
 from Losses import *
 from Metrics import *
 from Optimizers import *
-'''
-W = [[-0.05078057],
- [ 0.64329567],
- [ 1.20661244],
- [ 0.67322229]]
+from data.data import *
 
-[[-0.05078057, -0.45289629],
- [ 0.64329567,  0.69494955],
- [ 1.20661244,  0.107874  ],
- [ 0.67322229,  0.65965736]]
-'''
-X = [
-    [1.0, 2.0, 3.0],
-    [-4.0, -5.0, -6.0],
-    [7.0, 8.0, 9.0],
-]
+# Load our data
+x_train = np.array(x_train_raw_1000)
+y_train = np.array(y_train_raw_1000)
+x_test = np.array(x_test_raw_1000)
+y_test = np.array(y_test_raw_1000)
 
-y_true = [
-    [0, 1],
-    [1, 0],
-    [0, 1]
-    ]
-
-y_true = np.array(y_true)
-X = np.array(X)
-
-layer1 = Dense(3, 2)
+# Define out network
+layer1 = Dense(2, 16)
 layer2 = ReLU()
-layer3 = Dense(2, 2)
+layer3 = Dense(16, 2)
 layer4 = SoftmaxCrossEntropy()
+sgd = SGD(learning_rate = 1, decay=0.001)
 
-print(X)
-out = layer1.forward(X)
-print(out)
-out2 = layer2.forward(out)
-print(out2)
-out3 = layer3.forward(out2)
-print(out3)
-out4 = layer4.forward(out3, y_true)
-loss = layer4.loss
-print(out4)
-print(loss)
-acc = Accuracy()
-print(acc.calculate(y_true, out4))
+# Perform training loop
+for epoch in range(2001):
+    # Forward Pass
+    out = layer1.forward(x_train)
+    out2 = layer2.forward(out)
+    out3 = layer3.forward(out2)
+    out4 = layer4.forward(out3, y_train)
 
-print("Start of backprop relu and dense")
-back4 = layer2.backward(out2)
-print(back4)
-back3 = layer1.backward(back4)
-print(back3)
-print(layer1.dbiases)
-print(layer1.dweights)
+    # Calculate loss and metric
+    loss = layer4.loss
+    acc = Accuracy().calculate(y_train, out4)
 
-print("START OF TEST")
+    # Backward Pass
+    back4 = layer4.backward(out4, y_train)
+    back3 = layer3.backward(back4)
+    back3 = layer2.backward(back3)
+    back1 = layer1.backward(back3)
 
-softmax_outputs = np.array([[0.7, 0.1, 0.2],
-[0.1, 0.5, 0.4],
-[0.02, 0.9, 0.08]])
-class_targets = np.array([[0, 1],
-                        [1, 0],
-                        [0, 1]])
-print(layer4.backward(softmax_outputs, class_targets))
+    # Update parameters
+    sgd.pre_update()
+    sgd.update(layer3)
+    sgd.update(layer1)
+    sgd.post_update()
 
-print("Start of backprop full")
-
-back4 = layer4.backward(out4, y_true)
-print(back4)
-back3 = layer3.backward(back4)
-print(back3)
-back3 = layer2.backward(back3)
-print(back3)
-back1 = layer1.backward(back3)
-print(back1)
-
-
-sgd = SGD()
-print("Start of optimizer test")
-print("        Weights pre:")
-print(layer3.weights)
-print(layer3.dweights)
-print(layer1.weights)
-print(layer1.dweights)
-print("        Biases pre:")
-print(layer3.biases)
-print(layer3.dbiases)
-print(layer1.biases)
-print(layer1.dbiases)
-sgd.pre_update()
-sgd.update(layer3)
-sgd.update(layer1)
-print("        Weights post:")
-print(layer3.weights)
-print(layer1.weights)
-print("        Biases post:")
-print(layer3.biases)
-print(layer1.biases)
+    # Test the network every 100 iterations
+    if not epoch % 100:
+        out = layer1.forward(x_test)
+        out2 = layer2.forward(out)
+        out3 = layer3.forward(out2)
+        out4 = layer4.forward(out3, y_test)
+        lossTest = layer4.loss
+        accTest = Accuracy().calculate(y_test, out4)
+        
+        print(f'epoch: {epoch}, ' +
+        f'acc: {acc:.3f}, ' +
+        f'loss: {loss:.3f}, ' +
+        f'acc_test: {accTest:.3f}, ' +
+        f'loss_test: {lossTest:.3f}, ' +
+        f'lr: {sgd.current_learning_rate:.3f}')
