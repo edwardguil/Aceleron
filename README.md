@@ -41,12 +41,12 @@ double acc = metric::accuracy(y_train, out4);
 
 ## Installation
 ### C++
-Requires CUDA version 10.0, C++11 or greater and appropriate compiler
+Requires CUDA version 10.0, C++11 or greater and appropriate compiler (g++)
 1) Clone repo
 2) Cd to C++ dir
 3) Run "make" in terminal
 4) Run "./driver 1000" for demonstration of the serial implementation
-5) Run "./driver 1000" for demonstration of the parallel implementation
+5) Run "./driverp 1000" for demonstration of the parallel implementation
 
 ### Python
 1) Clone repo
@@ -54,5 +54,5 @@ Requires CUDA version 10.0, C++11 or greater and appropriate compiler
 3) Run driver.py for demonstration of the serial implementation
 
 ## HPC Analysis
-This codebase is paired with a report on the comparison of the serial and parrallel implementation. If you wish to read it, see this [link](https://1drv.ms/b/s!AvEmHRWzO1jBj4Y_j-OCCbseaACtQw?e=EznURm7) to download a copy. 
+This codebase is paired with a HPC report on the comparison of the serial and parrallel implementation. If you wish to read it, see this [link](https://1drv.ms/b/s!AvEmHRWzO1jBktMaZQwF5cUF7JfKOQ?e=w9ue8b) to download a copy. 
 
