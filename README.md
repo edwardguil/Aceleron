@@ -1,7 +1,7 @@
-# edNet
-A Simple Parallelized Neural Network Framework in C++ and Python! 
+# Aceleron
+A beautifully simple neural network framework written in C++ and Python! 
 
-This is a Neural Network framework that covers core mechanics of traditional neural network techniques and it's approach from a high performance computing perspective. The C++ is a header only implementation, which allows for easy incorporation into existing projects. 
+This framework that covers core mechanics of traditional neural network techniques and it's approach from a high performance computing perspective. The C++ is a header only implementation, which allows for easy incorporation into existing projects. 
 
 ### Features:
 - Layers:
