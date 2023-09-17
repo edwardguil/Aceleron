@@ -1,7 +1,7 @@
 # Aceleron
-A beautifully simple neural network framework written in C++ and Python! 
+A beautifully simple, fully parallelized, neural network framework written in C++ and Python! 
 
-This framework that covers core mechanics of traditional neural network techniques and it's approach from a high performance computing perspective. The C++ is a header only implementation, which allows for easy incorporation into existing projects. 
+This framework covers the core mechanics of traditional neural network techniques and it's approach from a high performance computing perspective. 
 
 ### Features:
 - Layers:
